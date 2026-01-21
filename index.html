@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TRUST - Пародия на Rust</title>
+    <title>TRUST - Управляемая пародия на Rust</title>
     <style>
         body {
             margin: 0;
@@ -13,49 +13,49 @@
             color: #fff;
             text-align: center;
             min-height: 100vh;
+            overflow: hidden;
             image-rendering: pixelated;
         }
         
         .game-container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.8);
             border-radius: 10px;
-            padding: 20px;
+            padding: 15px;
             border: 3px solid #5D4037;
             box-shadow: 0 0 50px rgba(0,0,0,0.8);
         }
         
         h1 {
             color: #FF9800;
-            font-size: 3em;
+            font-size: 2.5em;
             text-shadow: 3px 3px 0 #000;
-            margin-bottom: 10px;
-            letter-spacing: 2px;
+            margin: 10px 0;
+            letter-spacing: 1px;
         }
         
         .subtitle {
             color: #FFC107;
-            font-size: 1.2em;
-            margin-bottom: 30px;
+            font-size: 1em;
+            margin-bottom: 15px;
             font-style: italic;
         }
         
-        .game-area {
+        .game-wrapper {
             display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-            margin: 20px 0;
+            grid-template-columns: 1fr 300px;
+            gap: 15px;
+            height: 600px;
         }
         
-        .main-screen {
+        .game-screen {
             background: #4E342E;
             border: 3px solid #3E2723;
             border-radius: 5px;
-            padding: 15px;
-            min-height: 400px;
             position: relative;
             overflow: hidden;
+            cursor: crosshair;
         }
         
         .ui-panel {
@@ -64,8 +64,10 @@
             border-radius: 5px;
             padding: 15px;
             text-align: left;
+            overflow-y: auto;
         }
         
+        /* Игровые объекты */
         .player {
             position: absolute;
             width: 40px;
@@ -73,532 +75,1157 @@
             background: #795548;
             border: 2px solid #5D4037;
             border-radius: 5px;
-            transition: all 0.1s;
+            z-index: 100;
+            transition: transform 0.05s;
         }
         
         .tree {
             position: absolute;
-            width: 30px;
-            height: 60px;
+            width: 40px;
+            height: 80px;
             background: #2E7D32;
-            border-radius: 0 0 15px 15px;
+            border: 2px solid #1B5E20;
+            border-radius: 0 0 20px 20px;
+            cursor: pointer;
         }
         
         .rock {
             position: absolute;
-            width: 40px;
+            width: 50px;
             height: 40px;
             background: #757575;
+            border: 2px solid #616161;
             border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .resource {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            animation: float 2s infinite;
+            cursor: pointer;
+            z-index: 50;
+        }
+        
+        .wood { 
+            background: #8BC34A; 
+            border: 2px solid #689F38;
+        }
+        .stone { 
+            background: #9E9E9E; 
+            border: 2px solid #757575;
+        }
+        .metal { 
+            background: #BDBDBD; 
+            border: 2px solid #9E9E9E;
+        }
+        
+        .enemy {
+            position: absolute;
+            width: 35px;
+            height: 55px;
+            background: #D32F2F;
+            border: 2px solid #B71C1C;
+            border-radius: 5px;
+            transition: all 0.1s;
         }
         
         .base {
             position: absolute;
-            width: 100px;
-            height: 80px;
+            width: 120px;
+            height: 100px;
             background: #D84315;
-            border: 3px solid #BF360C;
+            border: 4px solid #BF360C;
             border-radius: 10px;
+            z-index: 10;
         }
         
-        .item {
+        .wall {
             position: absolute;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            animation: float 2s infinite;
+            background: #5D4037;
+            border: 2px solid #3E2723;
+            z-index: 20;
         }
         
-        .wood { background: #8BC34A; }
-        .stone { background: #9E9E9E; }
-        .metal { background: #BDBDBD; }
+        .bullet {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #FFD700;
+            border-radius: 50%;
+            z-index: 90;
+        }
         
+        /* Анимации */
         @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-5px) scale(1.05); }
+        }
+        
+        @keyframes hit {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        
+        /* UI элементы */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 5px;
+        }
+        
+        .stat {
+            text-align: center;
+            padding: 5px;
+            background: #5D4037;
+            border-radius: 5px;
+            border: 1px solid #8D6E63;
+        }
+        
+        .stat-value {
+            font-size: 1.3em;
+            color: #FF9800;
+            font-weight: bold;
+        }
+        
+        .hotbar {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 5px;
+        }
+        
+        .hotbar-slot {
+            width: 50px;
+            height: 50px;
+            background: #4E342E;
+            border: 2px solid #8D6E63;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .hotbar-slot.selected {
+            border-color: #FF9800;
+            background: #6D4C41;
+            transform: scale(1.1);
+        }
+        
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 5px;
+        }
+        
+        .inventory-item {
+            height: 40px;
+            background: #4E342E;
+            border: 1px solid #8D6E63;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-direction: column;
+            padding: 2px;
+        }
+        
+        .inventory-count {
+            font-size: 10px;
+            color: #FF9800;
+            margin-top: 2px;
+        }
+        
+        .chat {
+            background: #000;
+            border: 1px solid #FF9800;
+            height: 120px;
+            margin-top: 10px;
+            padding: 8px;
+            overflow-y: auto;
+            text-align: left;
+            font-size: 11px;
+            border-radius: 5px;
+        }
+        
+        .chat-message {
+            margin: 3px 0;
+            padding: 2px 5px;
+            border-bottom: 1px solid #333;
         }
         
         button {
             background: #FF9800;
             color: #000;
             border: none;
-            padding: 10px 20px;
-            margin: 5px;
+            padding: 8px 15px;
+            margin: 3px;
             border-radius: 5px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
-            font-size: 14px;
+            font-size: 12px;
+            width: 100%;
         }
         
         button:hover {
             background: #FFB74D;
-            transform: scale(1.05);
+            transform: translateY(-2px);
         }
         
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin: 20px 0;
-        }
-        
-        .stat {
-            background: #5D4037;
+        .controls-info {
+            background: rgba(255, 152, 0, 0.1);
             padding: 10px;
             border-radius: 5px;
-            border: 1px solid #8D6E63;
+            margin: 10px 0;
+            font-size: 11px;
         }
         
-        .stat-value {
-            font-size: 1.5em;
+        .floating-text {
+            position: absolute;
             color: #FF9800;
             font-weight: bold;
+            pointer-events: none;
+            z-index: 1000;
+            animation: floatUp 1s forwards;
         }
         
-        .chat {
-            background: #000;
-            border: 1px solid #FF9800;
-            height: 150px;
-            margin-top: 20px;
-            padding: 10px;
-            overflow-y: auto;
-            text-align: left;
-            font-size: 12px;
-            border-radius: 5px;
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-30px); opacity: 0; }
         }
         
-        .chat-message {
-            margin: 5px 0;
-            padding: 3px;
-            border-bottom: 1px solid #333;
-        }
-        
-        .chat-message:nth-child(odd) {
-            background: rgba(255, 152, 0, 0.1);
-        }
-        
-        .toolbar {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
-        
-        .tool {
-            width: 50px;
-            height: 50px;
-            background: #4E342E;
-            border: 2px solid #FF9800;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-        }
-        
-        .selected {
-            background: #FF9800;
-            color: #000;
-        }
-        
-        .achievement {
-            background: #FFEB3B;
-            color: #000;
-            padding: 10px;
-            margin: 10px;
-            border-radius: 5px;
-            animation: achievement-pop 0.5s;
-            display: none;
-        }
-        
-        @keyframes achievement-pop {
-            0% { transform: scale(0); }
-            80% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-        
-        .naked-man {
-            position: absolute;
-            width: 30px;
-            height: 50px;
-            background: #FFCCBC;
-            border-radius: 5px;
-            animation: run 3s infinite linear;
-        }
-        
-        @keyframes run {
-            0% { left: -50px; }
-            100% { left: 100%; }
-        }
-        
-        .game-message {
+        .game-over {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9);
-            padding: 20px;
-            border: 3px solid #FF9800;
-            border-radius: 10px;
+            background: rgba(0,0,0,0.95);
+            padding: 30px;
+            border: 4px solid #FF9800;
+            border-radius: 15px;
+            text-align: center;
+            z-index: 1000;
             display: none;
+        }
+        
+        .minimap {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 150px;
+            height: 150px;
+            background: rgba(0,0,0,0.7);
+            border: 2px solid #FF9800;
+            border-radius: 5px;
+            z-index: 200;
+        }
+        
+        .minimap-dot {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #FF9800;
+            border-radius: 50%;
         }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <h1>TRUST</h1>
-        <div class="subtitle">Вы просыпаетесь голым на берегу. Снова. Пародия на выживание</div>
+        <h1>TRUST: ПЕСОЧНИЦА</h1>
+        <div class="subtitle">WASD - движение | ЛКМ - атака/сбор | 1-5 - слоты | E - взаимодействие</div>
         
-        <div class="stats">
+        <div class="stats-bar">
             <div class="stat">
-                <div>Здоровье</div>
+                <div>❤️ Здоровье</div>
                 <div class="stat-value" id="health">100</div>
             </div>
             <div class="stat">
-                <div>Голод</div>
+                <div>🍗 Голод</div>
                 <div class="stat-value" id="hunger">100</div>
             </div>
             <div class="stat">
-                <div>Жажда</div>
+                <div>💧 Жажда</div>
                 <div class="stat-value" id="thirst">100</div>
+            </div>
+            <div class="stat">
+                <div>⚡ Выносливость</div>
+                <div class="stat-value" id="stamina">100</div>
             </div>
         </div>
         
-        <div class="game-area">
-            <div class="main-screen" id="gameScreen">
-                <!-- Игровые объекты будут добавлены через JS -->
-                <div class="player" id="player"></div>
-                <div class="base" style="top: 50px; left: 300px;"></div>
-                <div class="naked-man" style="top: 200px;"></div>
-                
-                <div class="game-message" id="gameMessage">
-                    <h2 id="messageTitle">Вас убили!</h2>
-                    <p id="messageText">Снова голый на пляже...</p>
-                    <button onclick="respawn()">Возродиться</button>
+        <div class="game-wrapper">
+            <div class="game-screen" id="gameScreen" tabindex="0">
+                <!-- Игровые объекты будут созданы через JS -->
+                <div class="game-over" id="gameOver">
+                    <h2>ВЫ УМЕРЛИ</h2>
+                    <p>Типичный день в TRUST...</p>
+                    <p>Прожито: <span id="survivedTime">0</span> секунд</p>
+                    <button onclick="respawn()">Возродиться на пляже</button>
                 </div>
+                
+                <div class="minimap" id="minimap"></div>
             </div>
             
             <div class="ui-panel">
-                <h3>Инвентарь</h3>
-                <div id="inventory">
-                    <div>Дерево: <span id="woodCount">0</span></div>
-                    <div>Камень: <span id="stoneCount">0</span></div>
-                    <div>Металл: <span id="metalCount">0</span></div>
-                    <div>Еда: <span id="foodCount">0</span></div>
+                <h3>🎒 ИНВЕНТАРЬ</h3>
+                <div class="inventory-grid" id="inventory">
+                    <!-- Слоты инвентаря будут созданы через JS -->
                 </div>
                 
-                <h3>Крафт</h3>
-                <div id="crafting">
-                    <button onclick="craft('hatchet')">Топор (10 дерева)</button>
-                    <button onclick="craft('pickaxe')">Кирка (5 камня)</button>
-                    <button onclick="craft('wall')">Стена (20 дерева)</button>
-                    <button onclick="craft('door')">Дверь (15 дерева, 5 металла)</button>
+                <h3>🛠️ ГОРЯЧИЕ КЛАВИШИ</h3>
+                <div class="hotbar">
+                    <div class="hotbar-slot selected" data-slot="0">👊</div>
+                    <div class="hotbar-slot" data-slot="1">🪓</div>
+                    <div class="hotbar-slot" data-slot="2">⛏️</div>
+                    <div class="hotbar-slot" data-slot="3">🔫</div>
+                    <div class="hotbar-slot" data-slot="4">🏥</div>
                 </div>
                 
-                <h3>Цель игры</h3>
-                <p style="font-size: 12px; color: #FFCC80;">
-                    Собирайте ресурсы, постройте базу, крафтите оружие. 
-                    Выживите любой ценой. Но помните: всё могут отнять в любой момент.
-                </p>
+                <div class="controls-info">
+                    <strong>Управление:</strong><br>
+                    WASD - Движение<br>
+                    ЛКМ - Использовать предмет<br>
+                    ПКМ - Альтернативное действие<br>
+                    E - Подобрать предмет<br>
+                    F - Построить стену<br>
+                    R - Перезарядить<br>
+                    Пробел - Прыжок
+                </div>
+                
+                <h3>💬 ЧАТ СЕРВЕРА</h3>
+                <div class="chat" id="chat">
+                    <div class="chat-message">[СИСТЕМА] Добро пожаловать в TRUST!</div>
+                    <div class="chat-message">[БОТ] Двигайтесь WASD, атакуйте ЛКМ</div>
+                    <div class="chat-message">[ИГРОК] Кто на 150х250?</div>
+                </div>
+                
+                <button onclick="toggleBuildMode()">🏗️ Режим строительства (F)</button>
+                <button onclick="saveGame()">💾 Сохраниться (нет)</button>
             </div>
-        </div>
-        
-        <div class="toolbar">
-            <div class="tool selected" onclick="selectTool('fist)">👊</div>
-            <div class="tool" onclick="selectTool('hatchet')" id="toolHatchet">🪓</div>
-            <div class="tool" onclick="selectTool('pickaxe')" id="toolPickaxe">⛏️</div>
-            <div class="tool" onclick="selectTool('gun')" id="toolGun">🔫</div>
-            <div class="tool" onclick="placeWall()">🧱</div>
-        </div>
-        
-        <div class="chat" id="chat">
-            <div class="chat-message">[СИСТЕМА] Добро пожаловать на сервер TRUST!</div>
-            <div class="chat-message">[БОТ] Собирайте дерево и камень для начала</div>
-            <div class="chat-message">[ИГРОК1] Кто-нибудь хочет объединиться?</div>
-            <div class="chat-message">[ИГРОК2] *убил вас камнем*</div>
-            <div class="chat-message">[ИГРОК3] Где найти металл?</div>
-        </div>
-        
-        <div class="achievement" id="achievement">
-            🏆 Достижение получено!
-        </div>
-        
-        <div style="margin-top: 20px;">
-            <button onclick="gatherWood()">Собрать дерево</button>
-            <button onclick="gatherStone()">Собрать камень</button>
-            <button onclick="attack()">Атаковать</button>
-            <button onclick="eat()">Поесть (если есть еда)</button>
-            <button onclick="drink()">Попить</button>
-            <button onclick="toggleChat()">Написать в чат (пародия)</button>
-            <button onclick="simulateRaid()">Симулировать рейд</button>
         </div>
     </div>
 
     <script>
-        let resources = { wood: 0, stone: 0, metal: 0, food: 0 };
-        let health = 100, hunger = 100, thirst = 100;
-        let currentTool = 'fist';
-        let gameObjects = [];
-        
+        // Основные переменные игры
+        const game = {
+            player: null,
+            keys: {},
+            mouse: { x: 0, y: 0, down: false, rightDown: false },
+            resources: {
+                wood: 0,
+                stone: 0,
+                metal: 0,
+                food: 0,
+                ammo: 0
+            },
+            stats: {
+                health: 100,
+                hunger: 100,
+                thirst: 100,
+                stamina: 100,
+                level: 1,
+                xp: 0
+            },
+            hotbar: ['fist', 'hatchet', 'pickaxe', 'gun', 'medkit'],
+            selectedSlot: 0,
+            buildMode: false,
+            enemies: [],
+            objects: [],
+            bullets: [],
+            gameTime: 0,
+            gameActive: true
+        };
+
+        // Инициализация игры
         function initGame() {
+            createPlayer();
+            createWorld();
+            createInventoryUI();
+            setupControls();
+            gameLoop();
+            survivalLoop();
+        }
+
+        // Создание игрока
+        function createPlayer() {
+            game.player = document.createElement('div');
+            game.player.className = 'player';
+            game.player.id = 'player';
+            game.player.style.left = '400px';
+            game.player.style.top = '300px';
+            gameScreen.appendChild(game.player);
+            
+            // Следим за курсором
+            gameScreen.addEventListener('mousemove', (e) => {
+                const rect = gameScreen.getBoundingClientRect();
+                game.mouse.x = e.clientX - rect.left;
+                game.mouse.y = e.clientY - rect.top;
+            });
+            
+            // Клики мыши
+            gameScreen.addEventListener('mousedown', (e) => {
+                if (e.button === 0) game.mouse.down = true;
+                if (e.button === 2) game.mouse.rightDown = true;
+                
+                if (game.mouse.down) useSelectedItem();
+                if (game.mouse.rightDown) alternativeAction();
+                
+                e.preventDefault();
+            });
+            
+            gameScreen.addEventListener('mouseup', (e) => {
+                if (e.button === 0) game.mouse.down = false;
+                if (e.button === 2) game.mouse.rightDown = false;
+            });
+            
+            // Контекстное меню
+            gameScreen.addEventListener('contextmenu', (e) => e.preventDefault());
+        }
+
+        // Создание мира
+        function createWorld() {
             // Создаем деревья
-            for(let i = 0; i < 8; i++) {
-                createObject('tree', Math.random() * 500 + 50, Math.random() * 300 + 50);
+            for(let i = 0; i < 15; i++) {
+                const tree = document.createElement('div');
+                tree.className = 'tree';
+                tree.style.left = Math.random() * 700 + 'px';
+                tree.style.top = Math.random() * 400 + 'px';
+                tree.dataset.health = 50;
+                gameScreen.appendChild(tree);
+                game.objects.push({
+                    element: tree,
+                    type: 'tree',
+                    x: parseInt(tree.style.left),
+                    y: parseInt(tree.style.top),
+                    health: 50
+                });
             }
             
             // Создаем камни
-            for(let i = 0; i < 6; i++) {
-                createObject('rock', Math.random() * 500 + 50, Math.random() * 300 + 50);
+            for(let i = 0; i < 10; i++) {
+                const rock = document.createElement('div');
+                rock.className = 'rock';
+                rock.style.left = Math.random() * 700 + 'px';
+                rock.style.top = Math.random() * 400 + 'px';
+                rock.dataset.health = 30;
+                gameScreen.appendChild(rock);
+                game.objects.push({
+                    element: rock,
+                    type: 'rock',
+                    x: parseInt(rock.style.left),
+                    y: parseInt(rock.style.top),
+                    health: 30
+                });
             }
             
-            // Ресурсы на земле
-            for(let i = 0; i < 5; i++) {
-                createResource('wood', Math.random() * 500 + 50, Math.random() * 300 + 50);
-                createResource('stone', Math.random() * 500 + 50, Math.random() * 300 + 50);
+            // Создаем ресурсы на земле
+            spawnResources();
+            
+            // Создаем базу
+            const base = document.createElement('div');
+            base.className = 'base';
+            base.style.left = '600px';
+            base.style.top = '100px';
+            gameScreen.appendChild(base);
+            
+            // Создаем врагов
+            spawnEnemies();
+        }
+
+        // Спавн ресурсов
+        function spawnResources() {
+            for(let i = 0; i < 10; i++) {
+                const types = ['wood', 'stone', 'metal'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                
+                const resource = document.createElement('div');
+                resource.className = `resource ${type}`;
+                resource.style.left = Math.random() * 700 + 'px';
+                resource.style.top = Math.random() * 400 + 'px';
+                resource.dataset.type = type;
+                resource.dataset.amount = Math.floor(Math.random() * 5) + 1;
+                
+                resource.addEventListener('click', () => collectResource(resource));
+                
+                gameScreen.appendChild(resource);
+                game.objects.push({
+                    element: resource,
+                    type: 'resource',
+                    resourceType: type,
+                    x: parseInt(resource.style.left),
+                    y: parseInt(resource.style.top)
+                });
             }
         }
-        
-        function createObject(type, x, y) {
-            const obj = document.createElement('div');
-            obj.className = type;
-            obj.style.left = x + 'px';
-            obj.style.top = y + 'px';
-            gameScreen.appendChild(obj);
-            gameObjects.push({element: obj, type: type, x: x, y: y});
-        }
-        
-        function createResource(type, x, y) {
-            const res = document.createElement('div');
-            res.className = 'item ' + type;
-            res.style.left = x + 'px';
-            res.style.top = y + 'px';
-            res.onclick = function() { gatherResource(type); this.remove(); };
-            gameScreen.appendChild(res);
-        }
-        
-        function gatherWood() {
-            resources.wood += Math.floor(Math.random() * 5) + 3;
-            updateResources();
-            hunger -= 5;
-            thirst -= 3;
-            updateStats();
-            addChatMessage('Вы собрали дерево');
-            checkAchievement();
-        }
-        
-        function gatherStone() {
-            resources.stone += Math.floor(Math.random() * 3) + 1;
-            updateResources();
-            hunger -= 8;
-            thirst -= 5;
-            updateStats();
-            addChatMessage('Вы собрали камень');
-        }
-        
-        function gatherResource(type) {
-            resources[type]++;
-            updateResources();
-            addChatMessage('Вы подобрали ' + (type === 'wood' ? 'дерево' : 'камень'));
-        }
-        
-        function attack() {
-            if(Math.random() > 0.7) {
-                health -= Math.floor(Math.random() * 30) + 10;
-                showMessage('Вас атаковали!', 'Кто-то ударил вас сзади, пока вы рубили дерево');
-                addChatMessage('[СИСТЕМА] Вы были атакованы!');
-            } else {
-                addChatMessage('Вы машете ' + 
-                    (currentTool === 'fist' ? 'кулаками' : 
-                     currentTool === 'hatchet' ? 'топором' : 'киркой') + ' в воздухе');
+
+        // Спавн врагов
+        function spawnEnemies() {
+            for(let i = 0; i < 3; i++) {
+                const enemy = document.createElement('div');
+                enemy.className = 'enemy';
+                enemy.style.left = Math.random() * 700 + 'px';
+                enemy.style.top = Math.random() * 400 + 'px';
+                enemy.dataset.health = 30;
+                enemy.dataset.speed = Math.random() * 2 + 1;
+                gameScreen.appendChild(enemy);
+                game.enemies.push({
+                    element: enemy,
+                    x: parseInt(enemy.style.left),
+                    y: parseInt(enemy.style.top),
+                    health: 30,
+                    speed: parseFloat(enemy.dataset.speed)
+                });
             }
-            hunger -= 10;
-            thirst -= 8;
-            updateStats();
         }
-        
-        function craft(item) {
-            let canCraft = false;
-            let message = '';
+
+        // Создание UI инвентаря
+        function createInventoryUI() {
+            const inventory = document.getElementById('inventory');
+            inventory.innerHTML = '';
+            
+            for(let i = 0; i < 16; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'inventory-item';
+                slot.dataset.slot = i;
+                slot.innerHTML = `[${i+1}]<br><span class="inventory-count">0</span>`;
+                inventory.appendChild(slot);
+            }
+            
+            updateInventoryUI();
+        }
+
+        // Настройка управления
+        function setupControls() {
+            // Фокус на игровом экране
+            gameScreen.focus();
+            
+            // Обработка клавиш
+            gameScreen.addEventListener('keydown', (e) => {
+                game.keys[e.key.toLowerCase()] = true;
+                
+                // Переключение слотов (1-5)
+                if (e.key >= '1' && e.key <= '5') {
+                    selectHotbarSlot(parseInt(e.key) - 1);
+                }
+                
+                // Другие клавиши
+                switch(e.key.toLowerCase()) {
+                    case 'e': interact(); break;
+                    case 'f': toggleBuildMode(); break;
+                    case 'r': reload(); break;
+                    case ' ': jump(); break;
+                    case 'q': dropItem(); break;
+                }
+            });
+            
+            gameScreen.addEventListener('keyup', (e) => {
+                game.keys[e.key.toLowerCase()] = false;
+            });
+            
+            // Горячие клавиши на слоты
+            document.querySelectorAll('.hotbar-slot').forEach(slot => {
+                slot.addEventListener('click', () => {
+                    selectHotbarSlot(parseInt(slot.dataset.slot));
+                });
+            });
+        }
+
+        // Основной игровой цикл
+        function gameLoop() {
+            if (!game.gameActive) return;
+            
+            // Движение игрока
+            movePlayer();
+            
+            // Обновление врагов
+            updateEnemies();
+            
+            // Обновление пуль
+            updateBullets();
+            
+            // Обновление мини-карты
+            updateMinimap();
+            
+            // Продолжаем цикл
+            requestAnimationFrame(gameLoop);
+            game.gameTime += 0.016; // ~60 FPS
+        }
+
+        // Цикл выживания (статы)
+        function survivalLoop() {
+            if (!game.gameActive) return;
+            
+            // Уменьшаем статы со временем
+            game.stats.hunger = Math.max(0, game.stats.hunger - 0.2);
+            game.stats.thirst = Math.max(0, game.stats.thirst - 0.3);
+            game.stats.stamina = Math.min(100, game.stats.stamina + 1);
+            
+            // Если голод или жажда на 0 - теряем здоровье
+            if (game.stats.hunger <= 0 || game.stats.thirst <= 0) {
+                game.stats.health -= 1;
+                if (Math.random() > 0.95) {
+                    addChatMessage('[СИСТЕМА] Вы голодаете!');
+                }
+            }
+            
+            // Проверка смерти
+            if (game.stats.health <= 0) {
+                gameOver();
+            }
+            
+            // Обновляем UI
+            updateStatsUI();
+            updateInventoryUI();
+            
+            // Случайные события
+            if (Math.random() > 0.99) {
+                randomEvent();
+            }
+            
+            // Повторяем
+            setTimeout(survivalLoop, 1000);
+        }
+
+        // Движение игрока
+        function movePlayer() {
+            if (!game.player) return;
+            
+            const speed = 3;
+            const playerRect = game.player.getBoundingClientRect();
+            const screenRect = gameScreen.getBoundingClientRect();
+            
+            let dx = 0, dy = 0;
+            
+            if (game.keys['w'] || game.keys['ц']) dy -= speed;
+            if (game.keys['s'] || game.keys['ы']) dy += speed;
+            if (game.keys['a'] || game.keys['ф']) dx -= speed;
+            if (game.keys['d'] || game.keys['в']) dx += speed;
+            
+            // Проверка на выносливость
+            if ((dx !== 0 || dy !== 0) && game.stats.stamina > 0) {
+                game.stats.stamina -= 0.5;
+            }
+            
+            // Ограничение движения по экрану
+            let newX = playerRect.left - screenRect.left + dx;
+            let newY = playerRect.top - screenRect.top + dy;
+            
+            newX = Math.max(0, Math.min(newX, screenRect.width - playerRect.width));
+            newY = Math.max(0, Math.min(newY, screenRect.height - playerRect.height));
+            
+            game.player.style.left = newX + 'px';
+            game.player.style.top = newY + 'px';
+            
+            // Поворот игрока к курсору
+            const playerCenterX = newX + playerRect.width / 2;
+            const playerCenterY = newY + playerRect.height / 2;
+            const angle = Math.atan2(game.mouse.y - playerCenterY, game.mouse.x - playerCenterX);
+            game.player.style.transform = `rotate(${angle}rad)`;
+        }
+
+        // Использование выбранного предмета
+        function useSelectedItem() {
+            const item = game.hotbar[game.selectedSlot];
             
             switch(item) {
+                case 'fist':
+                    punch();
+                    break;
                 case 'hatchet':
-                    if(resources.wood >= 10) {
-                        resources.wood -= 10;
-                        canCraft = true;
-                        document.getElementById('toolHatchet').style.display = 'flex';
-                        message = 'Вы скрафтили топор!';
-                    }
+                    chopTree();
                     break;
                 case 'pickaxe':
-                    if(resources.stone >= 5) {
-                        resources.stone -= 5;
-                        canCraft = true;
-                        document.getElementById('toolPickaxe').style.display = 'flex';
-                        message = 'Вы скрафтили кирку!';
-                    }
+                    mineRock();
+                    break;
+                case 'gun':
+                    shoot();
+                    break;
+                case 'medkit':
+                    useMedkit();
                     break;
             }
-            
-            if(canCraft) {
-                updateResources();
-                addChatMessage(message);
-                showAchievement('Крафтер');
+        }
+
+        // Альтернативное действие
+        function alternativeAction() {
+            if (game.buildMode) {
+                placeWall();
             } else {
-                addChatMessage('Не хватает ресурсов');
+                // Блокирование
+                addChatMessage('[ИГРОК] Блокируюсь!');
             }
         }
-        
-        function selectTool(tool) {
-            currentTool = tool;
-            document.querySelectorAll('.tool').forEach(t => t.classList.remove('selected'));
-            event.target.classList.add('selected');
-        }
-        
-        function eat() {
-            if(resources.food > 0) {
-                resources.food--;
-                hunger = Math.min(100, hunger + 30);
-                updateResources();
-                updateStats();
-                addChatMessage('Вы поели ягод (надеюсь, не ядовитых)');
+
+        // Взаимодействие
+        function interact() {
+            const playerRect = game.player.getBoundingClientRect();
+            const interactRange = 50;
+            
+            // Ищем ближайший объект
+            let nearestObj = null;
+            let minDist = Infinity;
+            
+            game.objects.forEach(obj => {
+                const objRect = obj.element.getBoundingClientRect();
+                const dist = Math.sqrt(
+                    Math.pow(objRect.left - playerRect.left, 2) + 
+                    Math.pow(objRect.top - playerRect.top, 2)
+                );
+                
+                if (dist < interactRange && dist < minDist) {
+                    minDist = dist;
+                    nearestObj = obj;
+                }
+            });
+            
+            if (nearestObj) {
+                switch(nearestObj.type) {
+                    case 'resource':
+                        collectResource(nearestObj.element);
+                        break;
+                    case 'tree':
+                        chopTree(nearestObj.element);
+                        break;
+                    case 'rock':
+                        mineRock(nearestObj.element);
+                        break;
+                }
             }
         }
-        
-        function drink() {
-            thirst = Math.min(100, thirst + 50);
-            if(Math.random() > 0.8) {
-                health -= 10;
-                addChatMessage('Вы попили грязной воды и заболели');
-            }
-            updateStats();
+
+        // Сбор ресурса
+        function collectResource(resourceElement) {
+            const type = resourceElement.dataset.type;
+            const amount = parseInt(resourceElement.dataset.amount) || 1;
+            
+            game.resources[type] += amount;
+            showFloatingText(`+${amount} ${type}`, resourceElement);
+            
+            // Удаляем ресурс
+            resourceElement.remove();
+            game.objects = game.objects.filter(obj => obj.element !== resourceElement);
+            
+            // Добавляем опыт
+            addXP(5);
+            
+            // Спавним новый ресурс через время
+            setTimeout(() => spawnResources(), 5000);
         }
-        
+
+        // Рубка дерева
+        function chopTree(treeElement = null) {
+            if (!treeElement) {
+                // Ищем ближайшее дерево
+                const playerRect = game.player.getBoundingClientRect();
+                treeElement = findNearestObject('tree', 80);
+                if (!treeElement) return;
+            }
+            
+            const treeObj = game.objects.find(obj => obj.element === treeElement);
+            if (!treeObj) return;
+            
+            // Наносим урон
+            treeObj.health -= 10;
+            treeElement.style.animation = 'hit 0.2s';
+            
+            showFloatingText('-10', treeElement);
+            
+            // Если дерево срублено
+            if (treeObj.health <= 0) {
+                // Добавляем ресурсы
+                const woodAmount = Math.floor(Math.random() * 5) + 3;
+                game.resources.wood += woodAmount;
+                showFloatingText(`+${woodAmount} дерево`, treeElement);
+                
+                // Удаляем дерево
+                treeElement.remove();
+                game.objects = game.objects.filter(obj => obj.element !== treeElement);
+                addXP(10);
+                
+                // Спавним новое дерево через время
+                setTimeout(() => {
+                    const tree = document.createElement('div');
+                    tree.className = 'tree';
+                    tree.style.left = Math.random() * 700 + 'px';
+                    tree.style.top = Math.random() * 400 + 'px';
+                    tree.dataset.health = 50;
+                    gameScreen.appendChild(tree);
+                    game.objects.push({
+                        element: tree,
+                        type: 'tree',
+                        x: parseInt(tree.style.left),
+                        y: parseInt(tree.style.top),
+                        health: 50
+                    });
+                }, 15000);
+            }
+            
+            // Тратим выносливость
+            game.stats.stamina = Math.max(0, game.stats.stamina - 5);
+            game.stats.hunger = Math.max(0, game.stats.hunger - 1);
+        }
+
+        // Добыча камня
+        function mineRock(rockElement = null) {
+            // Аналогично рубке дерева
+            addChatMessage('[ИГРОК] Майню камень...');
+            if (game.resources.stone < 10) {
+                game.resources.stone += 2;
+                addXP(8);
+            }
+        }
+
+        // Стрельба
+        function shoot() {
+            if (game.resources.ammo <= 0) {
+                addChatMessage('[ИГРОК] Нет патронов!');
+                return;
+            }
+            
+            game.resources.ammo--;
+            
+            const playerRect = game.player.getBoundingClientRect();
+            const bullet = document.createElement('div');
+            bullet.className = 'bullet';
+            
+            const startX = playerRect.left + playerRect.width / 2;
+            const startY = playerRect.top + playerRect.height / 2;
+            
+            bullet.style.left = startX + 'px';
+            bullet.style.top = startY + 'px';
+            
+            // Направление к курсору
+            const angle = Math.atan2(
+                game.mouse.y - playerRect.height / 2,
+                game.mouse.x - playerRect.width / 2
+            );
+            
+            const speed = 10;
+            const dx = Math.cos(angle) * speed;
+            const dy = Math.sin(angle) * speed;
+            
+            gameScreen.appendChild(bullet);
+            game.bullets.push({
+                element: bullet,
+                x: startX,
+                y: startY,
+                dx: dx,
+                dy: dy,
+                damage: 25
+            });
+            
+            // Звуковой эффект (заглушка)
+            addChatMessage('[ИГРОК] Бах!');
+        }
+
+        // Обновление пуль
+        function updateBullets() {
+            for(let i = game.bullets.length - 1; i >= 0; i--) {
+                const bullet = game.bullets[i];
+                bullet.x += bullet.dx;
+                bullet.y += bullet.dy;
+                
+                bullet.element.style.left = bullet.x + 'px';
+                bullet.element.style.top = bullet.y + 'px';
+                
+                // Проверка столкновений
+                if (bullet.x < 0 || bullet.x > gameScreen.clientWidth || 
+                    bullet.y < 0 || bullet.y > gameScreen.clientHeight) {
+                    bullet.element.remove();
+                    game.bullets.splice(i, 1);
+                    continue;
+                }
+                
+                // Проверка попадания во врагов
+                for(let j = game.enemies.length - 1; j >= 0; j--) {
+                    const enemy = game.enemies[j];
+                    const enemyRect = enemy.element.getBoundingClientRect();
+                    
+                    if (bullet.x > enemyRect.left && bullet.x < enemyRect.right &&
+                        bullet.y > enemyRect.top && bullet.y < enemyRect.bottom) {
+                        
+                        enemy.health -= bullet.damage;
+                        showFloatingText(`-${bullet.damage}`, enemy.element);
+                        
+                        if (enemy.health <= 0) {
+                            enemy.element.remove();
+                            game.enemies.splice(j, 1);
+                            addXP(25);
+                            addChatMessage('[ИГРОК] Враг убит!');
+                        }
+                        
+                        bullet.element.remove();
+                        game.bullets.splice(i, 1);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Обновление врагов
+        function updateEnemies() {
+            const playerRect = game.player.getBoundingClientRect();
+            
+            game.enemies.forEach(enemy => {
+                const enemyRect = enemy.element.getBoundingClientRect();
+                
+                // Движение к игроку
+                const dx = playerRect.left - enemyRect.left;
+                const dy = playerRect.top - enemyRect.top;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist > 10) {
+                    const speed = enemy.speed;
+                    enemy.x += (dx / dist) * speed;
+                    enemy.y += (dy / dist) * speed;
+                    
+                    enemy.element.style.left = enemy.x + 'px';
+                    enemy.element.style.top = enemy.y + 'px';
+                }
+                
+                // Атака игрока
+                if (dist < 40 && Math.random() > 0.98) {
+                    game.stats.health -= 10;
+                    showFloatingText('-10', game.player);
+                    addChatMessage('[СИСТЕМА] Вас атаковали!');
+                }
+            });
+        }
+
+        // Поиск ближайшего объекта
+        function findNearestObject(type, maxDistance = 100) {
+            const playerRect = game.player.getBoundingClientRect();
+            let nearest = null;
+            let minDist = maxDistance;
+            
+            game.objects.forEach(obj => {
+                if (obj.type === type) {
+                    const objRect = obj.element.getBoundingClientRect();
+                    const dist = Math.sqrt(
+                        Math.pow(objRect.left - playerRect.left, 2) + 
+                        Math.pow(objRect.top - playerRect.top, 2)
+                    );
+                    
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearest = obj.element;
+                    }
+                }
+            });
+            
+            return nearest;
+        }
+
+        // Вспомогательные функции
+        function selectHotbarSlot(slot) {
+            game.selectedSlot = slot;
+            document.querySelectorAll('.hotbar-slot').forEach((s, i) => {
+                s.classList.toggle('selected', i === slot);
+            });
+            addChatMessage(`[ИГРОК] Выбран слот ${slot + 1}: ${game.hotbar[slot]}`);
+        }
+
+        function toggleBuildMode() {
+            game.buildMode = !game.buildMode;
+            addChatMessage(`[ИГРОК] Режим строительства: ${game.buildMode ? 'ВКЛ' : 'ВЫКЛ'}`);
+        }
+
         function placeWall() {
-            if(resources.wood >= 20) {
-                resources.wood -= 20;
-                updateResources();
-                createObject('wall', Math.random() * 500 + 50, Math.random() * 300 + 50);
-                addChatMessage('Вы поставили стену');
+            if (game.resources.wood >= 10) {
+                game.resources.wood -= 10;
+                const wall = document.createElement('div');
+                wall.className = 'wall';
+                wall.style.width = '50px';
+                wall.style.height = '100px';
+                wall.style.left = (game.mouse.x - 25) + 'px';
+                wall.style.top = (game.mouse.y - 50) + 'px';
+                gameScreen.appendChild(wall);
+                addChatMessage('[ИГРОК] Построена стена');
+            } else {
+                addChatMessage('[ИГРОК] Недостаточно дерева (нужно 10)');
             }
         }
-        
-        function simulateRaid() {
-            showMessage('РЕЙД!', 'Вашу базу атакуют! Все ресурсы уничтожены.');
-            resources = { wood: 0, stone: 0, metal: 0, food: 0 };
-            health = 20;
-            updateResources();
-            updateStats();
-            addChatMessage('[СИСТЕМА] Ваша база была уничтожена рейдерами');
+
+        function useMedkit() {
+            if (game.stats.health < 100) {
+                game.stats.health = Math.min(100, game.stats.health + 50);
+                addChatMessage('[ИГРОК] Использована аптечка');
+            }
         }
-        
-        function toggleChat() {
-            const messages = [
-                "Торгую дерево на камень 2:1",
-                "Кто хочет в клан?",
-                "Сервер лагает!",
-                "Админ, заспавнь мне АК!",
-                "Где найти нефть?",
-                "*убил вас во сне*",
-                "Читер обнаружен!",
-                "Вход в базу на 150 250",
-                "Стройте высокие стены!",
-                "Нужен тимейт для рейда"
+
+        function reload() {
+            if (game.resources.metal >= 5) {
+                game.resources.ammo += 10;
+                game.resources.metal -= 5;
+                addChatMessage('[ИГРОК] Перезаряжено (+10 патронов)');
+            }
+        }
+
+        function jump() {
+            if (game.stats.stamina >= 20) {
+                game.stats.stamina -= 20;
+                game.player.style.transform += ' translateY(-20px)';
+                setTimeout(() => {
+                    game.player.style.transform = game.player.style.transform.replace(' translateY(-20px)', '');
+                }, 200);
+            }
+        }
+
+        function punch() {
+            const nearestEnemy = game.enemies[0];
+            if (nearestEnemy) {
+                nearestEnemy.health -= 5;
+                showFloatingText('-5', nearestEnemy.element);
+                addChatMessage('[ИГРОК] Удар кулаком!');
+            }
+        }
+
+        function dropItem() {
+            addChatMessage('[ИГРОК] Выбросил предмет (пародия)');
+        }
+
+        function saveGame() {
+            addChatMessage('[СИСТЕМА] Сохранение... Ой, это же пародия!');
+        }
+
+        function randomEvent() {
+            const events = [
+                () => {
+                    addChatMessage('[ПОГОДА] Начинается кислотный дождь!');
+                    game.stats.health -= 5;
+                },
+                () => {
+                    addChatMessage('[УДАЧА] Вы нашли тайник с припасами!');
+                    game.resources.ammo += 5;
+                    game.resources.food += 3;
+                },
+                () => {
+                    addChatMessage('[СОБЫТИЕ] Группа диких кабанов пробежала мимо!');
+                },
+                () => {
+                    addChatMessage('[СОБЫТИЕ] Слышны выстрелы вдалеке...');
+                }
             ];
-            const randomMsg = messages[Math.floor(Math.random() * messages.length)];
-            addChatMessage('[ИГРОК] ' + randomMsg);
+            events[Math.floor(Math.random() * events.length)]();
         }
-        
+
+        function addXP(amount) {
+            game.stats.xp += amount;
+            if (game.stats.xp >= 100) {
+                game.stats.level++;
+                game.stats.xp = 0;
+                addChatMessage(`[УРОВЕНЬ] Вы достигли ${game.stats.level} уровня!`);
+            }
+        }
+
+        function gameOver() {
+            game.gameActive = false;
+            document.getElementById('gameOver').style.display = 'block';
+            document.getElementById('survivedTime').textContent = Math.floor(game.gameTime);
+            addChatMessage('[СИСТЕМА] Игрок умер. Возрождение через 10 секунд...');
+        }
+
         function respawn() {
-            health = 100;
-            hunger = 100;
-            thirst = 100;
-            updateStats();
-            document.getElementById('gameMessage').style.display = 'none';
+            game.stats.health = 100;
+            game.stats.hunger = 100;
+            game.stats.thirst = 100;
+            game.stats.stamina = 100;
+            game.gameActive = true;
+            document.getElementById('gameOver').style.display = 'none';
+            game.player.style.left = '400px';
+            game.player.style.top = '300px';
             addChatMessage('[СИСТЕМА] Вы возродились на пляже');
+            gameLoop();
+            survivalLoop();
         }
-        
-        function updateResources() {
-            document.getElementById('woodCount').textContent = resources.wood;
-            document.getElementById('stoneCount').textContent = resources.stone;
-            document.getElementById('metalCount').textContent = resources.metal;
-            document.getElementById('foodCount').textContent = resources.food;
-        }
-        
-        function updateStats() {
-            if(health <= 0) {
-                showMessage('Вы умерли!', 'Типичный день в TRUST...');
-            }
-            if(hunger <= 0 || thirst <= 0) {
-                health -= 5;
-                if(health <= 0) showMessage('Вы умерли от голода/жажды!', 'Надо было кушать...');
-            }
+
+        // UI функции
+        function showFloatingText(text, element) {
+            const rect = element.getBoundingClientRect();
+            const screenRect = gameScreen.getBoundingClientRect();
             
-            document.getElementById('health').textContent = Math.max(0, health);
-            document.getElementById('hunger').textContent = Math.max(0, hunger);
-            document.getElementById('thirst').textContent = Math.max(0, thirst);
+            const floatText = document.createElement('div');
+            floatText.className = 'floating-text';
+            floatText.textContent = text;
+            floatText.style.left = (rect.left - screenRect.left + rect.width / 2) + 'px';
+            floatText.style.top = (rect.top - screenRect.top) + 'px';
             
-            // Автоматическое уменьшение показателей
-            hunger = Math.max(0, hunger - 0.5);
-            thirst = Math.max(0, thirst - 0.7);
+            gameScreen.appendChild(floatText);
+            setTimeout(() => floatText.remove(), 1000);
         }
-        
-        function showMessage(title, text) {
-            document.getElementById('messageTitle').textContent = title;
-            document.getElementById('messageText').textContent = text;
-            document.getElementById('gameMessage').style.display = 'block';
+
+        function updateStatsUI() {
+            document.getElementById('health').textContent = Math.floor(game.stats.health);
+            document.getElementById('hunger').textContent = Math.floor(game.stats.hunger);
+            document.getElementById('thirst').textContent = Math.floor(game.stats.thirst);
+            document.getElementById('stamina').textContent = Math.floor(game.stats.stamina);
         }
-        
-        function addChatMessage(msg) {
+
+        function updateInventoryUI() {
+            const slots = document.querySelectorAll('.inventory-item');
+            const resources = game.resources;
+            
+            // Простой инвентарь
+            slots[0].innerHTML = `Дерево<br><span class="inventory-count">${resources.wood}</span>`;
+            slots[1].innerHTML = `Камень<br><span class="inventory-count">${resources.stone}</span>`;
+            slots[2].innerHTML = `Металл<br><span class="inventory-count">${resources.metal}</span>`;
+            slots[3].innerHTML = `Еда<br><span class="inventory-count">${resources.food}</span>`;
+            slots[4].innerHTML = `Патроны<br><span class="inventory-count">${resources.ammo}</span>`;
+        }
+
+        function addChatMessage(message) {
             const chat = document.getElementById('chat');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'chat-message';
-            msgDiv.textContent = msg;
-            chat.appendChild(msgDiv);
+            const msg = document.createElement('div');
+            msg.className = 'chat-message';
+            msg.textContent = message;
+            chat.appendChild(msg);
             chat.scrollTop = chat.scrollHeight;
         }
-        
-        function showAchievement(name) {
-            const ach = document.getElementById('achievement');
-            ach.textContent = '🏆 ' + name + '!';
-            ach.style.display = 'block';
-            setTimeout(() => ach.style.display = 'none', 3000);
+
+        function updateMinimap() {
+            // Упрощенная мини-карта
+            const minimap = document.getElementById('minimap');
+            minimap.innerHTML = '';
+            
+            // Игрок на мини-карте
+            const playerDot = document.createElement('div');
+            playerDot.className = 'minimap-dot';
+            playerDot.style.left = '50%';
+            playerDot.style.top = '50%';
+            playerDot.style.background = '#FF9800';
+            playerDot.style.width = '6px';
+            playerDot.style.height = '6px';
+            minimap.appendChild(playerDot);
         }
-        
-        function checkAchievement() {
-            if(resources.wood >= 50 && !document.querySelector('.achievement-50wood')) {
-                showAchievement('Лесоруб');
-            }
-        }
-        
-        // Инициализация
-        initGame();
-        updateResources();
-        updateStats();
-        
-        // Автоматическое обновление состояния
-        setInterval(updateStats, 5000);
-        
-        // Случайные события
-        setInterval(() => {
-            if(Math.random() > 0.9) {
-                const events = [
-                    () => addChatMessage('[СИСТЕМА] На сервере идет дождь'),
-                    () => { 
-                        if(Math.random() > 0.5) {
-                            resources.food++;
-                            updateResources();
-                            addChatMessage('Вы нашли грибы');
-                        }
-                    },
-                    () => {
-                        createResource('wood', Math.random() * 500 + 50, Math.random() * 300 + 50);
-                    }
-                ];
-                events[Math.floor(Math.random() * events.length)]();
-            }
-        }, 10000);
+
+        // Запуск игры при загрузке
+        window.addEventListener('load', initGame);
+        // Фокус на игровом поле
+        gameScreen.focus();
     </script>
 </body>
 </html>
