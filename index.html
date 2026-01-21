@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRUST - Пародия на Rust</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(to bottom, #8B4513, #A0522D, #D2691E);
+            font-family: 'Arial', sans-serif;
+            color: #fff;
+            text-align: center;
+            min-height: 100vh;
+            image-rendering: pixelated;
+        }
+        
+        .game-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            border: 3px solid #5D4037;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+        
+        h1 {
+            color: #FF9800;
+            font-size: 3em;
+            text-shadow: 3px 3px 0 #000;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            color: #FFC107;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+        
+        .game-area {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .main-screen {
+            background: #4E342E;
+            border: 3px solid #3E2723;
+            border-radius: 5px;
+            padding: 15px;
+            min-height: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ui-panel {
+            background: #3E2723;
+            border: 2px solid #5D4037;
+            border-radius: 5px;
+            padding: 15px;
+            text-align: left;
+        }
+        
+        .player {
+            position: absolute;
+            width: 40px;
+            height: 60px;
+            background: #795548;
+            border: 2px solid #5D4037;
+            border-radius: 5px;
+            transition: all 0.1s;
+        }
+        
+        .tree {
+            position: absolute;
+            width: 30px;
+            height: 60px;
+            background: #2E7D32;
+            border-radius: 0 0 15px 15px;
+        }
+        
+        .rock {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: #757575;
+            border-radius: 50%;
+        }
+        
+        .base {
+            position: absolute;
+            width: 100px;
+            height: 80px;
+            background: #D84315;
+            border: 3px solid #BF360C;
+            border-radius: 10px;
+        }
+        
+        .item {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            animation: float 2s infinite;
+        }
+        
+        .wood { background: #8BC34A; }
+        .stone { background: #9E9E9E; }
+        .metal { background: #BDBDBD; }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        button {
+            background: #FF9800;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background: #FFB74D;
+            transform: scale(1.05);
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .stat {
+            background: #5D4037;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #8D6E63;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            color: #FF9800;
+            font-weight: bold;
+        }
+        
+        .chat {
+            background: #000;
+            border: 1px solid #FF9800;
+            height: 150px;
+            margin-top: 20px;
+            padding: 10px;
+            overflow-y: auto;
+            text-align: left;
+            font-size: 12px;
+            border-radius: 5px;
+        }
+        
+        .chat-message {
+            margin: 5px 0;
+            padding: 3px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .chat-message:nth-child(odd) {
+            background: rgba(255, 152, 0, 0.1);
+        }
+        
+        .toolbar {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .tool {
+            width: 50px;
+            height: 50px;
+            background: #4E342E;
+            border: 2px solid #FF9800;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .selected {
+            background: #FF9800;
+            color: #000;
+        }
+        
+        .achievement {
+            background: #FFEB3B;
+            color: #000;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+            animation: achievement-pop 0.5s;
+            display: none;
+        }
+        
+        @keyframes achievement-pop {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .naked-man {
+            position: absolute;
+            width: 30px;
+            height: 50px;
+            background: #FFCCBC;
+            border-radius: 5px;
+            animation: run 3s infinite linear;
+        }
+        
+        @keyframes run {
+            0% { left: -50px; }
+            100% { left: 100%; }
+        }
+        
+        .game-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            padding: 20px;
+            border: 3px solid #FF9800;
+            border-radius: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>TRUST</h1>
+        <div class="subtitle">Вы просыпаетесь голым на берегу. Снова. Пародия на выживание</div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div>Здоровье</div>
+                <div class="stat-value" id="health">100</div>
+            </div>
+            <div class="stat">
+                <div>Голод</div>
+                <div class="stat-value" id="hunger">100</div>
+            </div>
+            <div class="stat">
+                <div>Жажда</div>
+                <div class="stat-value" id="thirst">100</div>
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <div class="main-screen" id="gameScreen">
+                <!-- Игровые объекты будут добавлены через JS -->
+                <div class="player" id="player"></div>
+                <div class="base" style="top: 50px; left: 300px;"></div>
+                <div class="naked-man" style="top: 200px;"></div>
+                
+                <div class="game-message" id="gameMessage">
+                    <h2 id="messageTitle">Вас убили!</h2>
+                    <p id="messageText">Снова голый на пляже...</p>
+                    <button onclick="respawn()">Возродиться</button>
+                </div>
+            </div>
+            
+            <div class="ui-panel">
+                <h3>Инвентарь</h3>
+                <div id="inventory">
+                    <div>Дерево: <span id="woodCount">0</span></div>
+                    <div>Камень: <span id="stoneCount">0</span></div>
+                    <div>Металл: <span id="metalCount">0</span></div>
+                    <div>Еда: <span id="foodCount">0</span></div>
+                </div>
+                
+                <h3>Крафт</h3>
+                <div id="crafting">
+                    <button onclick="craft('hatchet')">Топор (10 дерева)</button>
+                    <button onclick="craft('pickaxe')">Кирка (5 камня)</button>
+                    <button onclick="craft('wall')">Стена (20 дерева)</button>
+                    <button onclick="craft('door')">Дверь (15 дерева, 5 металла)</button>
+                </div>
+                
+                <h3>Цель игры</h3>
+                <p style="font-size: 12px; color: #FFCC80;">
+                    Собирайте ресурсы, постройте базу, крафтите оружие. 
+                    Выживите любой ценой. Но помните: всё могут отнять в любой момент.
+                </p>
+            </div>
+        </div>
+        
+        <div class="toolbar">
+            <div class="tool selected" onclick="selectTool('fist)">👊</div>
+            <div class="tool" onclick="selectTool('hatchet')" id="toolHatchet">🪓</div>
+            <div class="tool" onclick="selectTool('pickaxe')" id="toolPickaxe">⛏️</div>
+            <div class="tool" onclick="selectTool('gun')" id="toolGun">🔫</div>
+            <div class="tool" onclick="placeWall()">🧱</div>
+        </div>
+        
+        <div class="chat" id="chat">
+            <div class="chat-message">[СИСТЕМА] Добро пожаловать на сервер TRUST!</div>
+            <div class="chat-message">[БОТ] Собирайте дерево и камень для начала</div>
+            <div class="chat-message">[ИГРОК1] Кто-нибудь хочет объединиться?</div>
+            <div class="chat-message">[ИГРОК2] *убил вас камнем*</div>
+            <div class="chat-message">[ИГРОК3] Где найти металл?</div>
+        </div>
+        
+        <div class="achievement" id="achievement">
+            🏆 Достижение получено!
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <button onclick="gatherWood()">Собрать дерево</button>
+            <button onclick="gatherStone()">Собрать камень</button>
+            <button onclick="attack()">Атаковать</button>
+            <button onclick="eat()">Поесть (если есть еда)</button>
+            <button onclick="drink()">Попить</button>
+            <button onclick="toggleChat()">Написать в чат (пародия)</button>
+            <button onclick="simulateRaid()">Симулировать рейд</button>
+        </div>
+    </div>
+
+    <script>
+        let resources = { wood: 0, stone: 0, metal: 0, food: 0 };
+        let health = 100, hunger = 100, thirst = 100;
+        let currentTool = 'fist';
+        let gameObjects = [];
+        
+        function initGame() {
+            // Создаем деревья
+            for(let i = 0; i < 8; i++) {
+                createObject('tree', Math.random() * 500 + 50, Math.random() * 300 + 50);
+            }
+            
+            // Создаем камни
+            for(let i = 0; i < 6; i++) {
+                createObject('rock', Math.random() * 500 + 50, Math.random() * 300 + 50);
+            }
+            
+            // Ресурсы на земле
+            for(let i = 0; i < 5; i++) {
+                createResource('wood', Math.random() * 500 + 50, Math.random() * 300 + 50);
+                createResource('stone', Math.random() * 500 + 50, Math.random() * 300 + 50);
+            }
+        }
+        
+        function createObject(type, x, y) {
+            const obj = document.createElement('div');
+            obj.className = type;
+            obj.style.left = x + 'px';
+            obj.style.top = y + 'px';
+            gameScreen.appendChild(obj);
+            gameObjects.push({element: obj, type: type, x: x, y: y});
+        }
+        
+        function createResource(type, x, y) {
+            const res = document.createElement('div');
+            res.className = 'item ' + type;
+            res.style.left = x + 'px';
+            res.style.top = y + 'px';
+            res.onclick = function() { gatherResource(type); this.remove(); };
+            gameScreen.appendChild(res);
+        }
+        
+        function gatherWood() {
+            resources.wood += Math.floor(Math.random() * 5) + 3;
+            updateResources();
+            hunger -= 5;
+            thirst -= 3;
+            updateStats();
+            addChatMessage('Вы собрали дерево');
+            checkAchievement();
+        }
+        
+        function gatherStone() {
+            resources.stone += Math.floor(Math.random() * 3) + 1;
+            updateResources();
+            hunger -= 8;
+            thirst -= 5;
+            updateStats();
+            addChatMessage('Вы собрали камень');
+        }
+        
+        function gatherResource(type) {
+            resources[type]++;
+            updateResources();
+            addChatMessage('Вы подобрали ' + (type === 'wood' ? 'дерево' : 'камень'));
+        }
+        
+        function attack() {
+            if(Math.random() > 0.7) {
+                health -= Math.floor(Math.random() * 30) + 10;
+                showMessage('Вас атаковали!', 'Кто-то ударил вас сзади, пока вы рубили дерево');
+                addChatMessage('[СИСТЕМА] Вы были атакованы!');
+            } else {
+                addChatMessage('Вы машете ' + 
+                    (currentTool === 'fist' ? 'кулаками' : 
+                     currentTool === 'hatchet' ? 'топором' : 'киркой') + ' в воздухе');
+            }
+            hunger -= 10;
+            thirst -= 8;
+            updateStats();
+        }
+        
+        function craft(item) {
+            let canCraft = false;
+            let message = '';
+            
+            switch(item) {
+                case 'hatchet':
+                    if(resources.wood >= 10) {
+                        resources.wood -= 10;
+                        canCraft = true;
+                        document.getElementById('toolHatchet').style.display = 'flex';
+                        message = 'Вы скрафтили топор!';
+                    }
+                    break;
+                case 'pickaxe':
+                    if(resources.stone >= 5) {
+                        resources.stone -= 5;
+                        canCraft = true;
+                        document.getElementById('toolPickaxe').style.display = 'flex';
+                        message = 'Вы скрафтили кирку!';
+                    }
+                    break;
+            }
+            
+            if(canCraft) {
+                updateResources();
+                addChatMessage(message);
+                showAchievement('Крафтер');
+            } else {
+                addChatMessage('Не хватает ресурсов');
+            }
+        }
+        
+        function selectTool(tool) {
+            currentTool = tool;
+            document.querySelectorAll('.tool').forEach(t => t.classList.remove('selected'));
+            event.target.classList.add('selected');
+        }
+        
+        function eat() {
+            if(resources.food > 0) {
+                resources.food--;
+                hunger = Math.min(100, hunger + 30);
+                updateResources();
+                updateStats();
+                addChatMessage('Вы поели ягод (надеюсь, не ядовитых)');
+            }
+        }
+        
+        function drink() {
+            thirst = Math.min(100, thirst + 50);
+            if(Math.random() > 0.8) {
+                health -= 10;
+                addChatMessage('Вы попили грязной воды и заболели');
+            }
+            updateStats();
+        }
+        
+        function placeWall() {
+            if(resources.wood >= 20) {
+                resources.wood -= 20;
+                updateResources();
+                createObject('wall', Math.random() * 500 + 50, Math.random() * 300 + 50);
+                addChatMessage('Вы поставили стену');
+            }
+        }
+        
+        function simulateRaid() {
+            showMessage('РЕЙД!', 'Вашу базу атакуют! Все ресурсы уничтожены.');
+            resources = { wood: 0, stone: 0, metal: 0, food: 0 };
+            health = 20;
+            updateResources();
+            updateStats();
+            addChatMessage('[СИСТЕМА] Ваша база была уничтожена рейдерами');
+        }
+        
+        function toggleChat() {
+            const messages = [
+                "Торгую дерево на камень 2:1",
+                "Кто хочет в клан?",
+                "Сервер лагает!",
+                "Админ, заспавнь мне АК!",
+                "Где найти нефть?",
+                "*убил вас во сне*",
+                "Читер обнаружен!",
+                "Вход в базу на 150 250",
+                "Стройте высокие стены!",
+                "Нужен тимейт для рейда"
+            ];
+            const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+            addChatMessage('[ИГРОК] ' + randomMsg);
+        }
+        
+        function respawn() {
+            health = 100;
+            hunger = 100;
+            thirst = 100;
+            updateStats();
+            document.getElementById('gameMessage').style.display = 'none';
+            addChatMessage('[СИСТЕМА] Вы возродились на пляже');
+        }
+        
+        function updateResources() {
+            document.getElementById('woodCount').textContent = resources.wood;
+            document.getElementById('stoneCount').textContent = resources.stone;
+            document.getElementById('metalCount').textContent = resources.metal;
+            document.getElementById('foodCount').textContent = resources.food;
+        }
+        
+        function updateStats() {
+            if(health <= 0) {
+                showMessage('Вы умерли!', 'Типичный день в TRUST...');
+            }
+            if(hunger <= 0 || thirst <= 0) {
+                health -= 5;
+                if(health <= 0) showMessage('Вы умерли от голода/жажды!', 'Надо было кушать...');
+            }
+            
+            document.getElementById('health').textContent = Math.max(0, health);
+            document.getElementById('hunger').textContent = Math.max(0, hunger);
+            document.getElementById('thirst').textContent = Math.max(0, thirst);
+            
+            // Автоматическое уменьшение показателей
+            hunger = Math.max(0, hunger - 0.5);
+            thirst = Math.max(0, thirst - 0.7);
+        }
+        
+        function showMessage(title, text) {
+            document.getElementById('messageTitle').textContent = title;
+            document.getElementById('messageText').textContent = text;
+            document.getElementById('gameMessage').style.display = 'block';
+        }
+        
+        function addChatMessage(msg) {
+            const chat = document.getElementById('chat');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'chat-message';
+            msgDiv.textContent = msg;
+            chat.appendChild(msgDiv);
+            chat.scrollTop = chat.scrollHeight;
+        }
+        
+        function showAchievement(name) {
+            const ach = document.getElementById('achievement');
+            ach.textContent = '🏆 ' + name + '!';
+            ach.style.display = 'block';
+            setTimeout(() => ach.style.display = 'none', 3000);
+        }
+        
+        function checkAchievement() {
+            if(resources.wood >= 50 && !document.querySelector('.achievement-50wood')) {
+                showAchievement('Лесоруб');
+            }
+        }
+        
+        // Инициализация
+        initGame();
+        updateResources();
+        updateStats();
+        
+        // Автоматическое обновление состояния
+        setInterval(updateStats, 5000);
+        
+        // Случайные события
+        setInterval(() => {
+            if(Math.random() > 0.9) {
+                const events = [
+                    () => addChatMessage('[СИСТЕМА] На сервере идет дождь'),
+                    () => { 
+                        if(Math.random() > 0.5) {
+                            resources.food++;
+                            updateResources();
+                            addChatMessage('Вы нашли грибы');
+                        }
+                    },
+                    () => {
+                        createResource('wood', Math.random() * 500 + 50, Math.random() * 300 + 50);
+                    }
+                ];
+                events[Math.floor(Math.random() * events.length)]();
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
