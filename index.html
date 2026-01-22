@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minecraft в браузере</title>
+    <title>Minecraft Web Edition</title>
     <style>
         * {
             margin: 0;
@@ -13,7 +13,7 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #1a1a2e;
+            background-color: #0d1b2a;
             color: #f0f0f0;
             overflow: hidden;
             height: 100vh;
@@ -28,169 +28,435 @@
         }
         
         #header {
-            padding: 15px;
-            background-color: rgba(30, 30, 46, 0.9);
-            border-bottom: 2px solid #4a4a6d;
+            padding: 12px 20px;
+            background-color: rgba(13, 27, 42, 0.95);
+            border-bottom: 3px solid #1b3a4b;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            z-index: 10;
-        }
-        
-        h1 {
-            color: #4ecdc4;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-            font-size: 28px;
+            z-index: 100;
         }
         
         .logo {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
         }
         
         .logo-icon {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             background: linear-gradient(45deg, #4ecdc4, #44a08d);
-            border-radius: 5px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 24px;
+            font-size: 28px;
+            box-shadow: 0 0 10px rgba(78, 205, 196, 0.5);
         }
         
-        .controls {
-            display: flex;
-            gap: 15px;
-        }
-        
-        button {
-            padding: 10px 20px;
-            background-color: #4a4a6d;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-        
-        button:hover {
-            background-color: #5a5a8d;
-            transform: translateY(-2px);
-        }
-        
-        #block-selector {
-            display: flex;
-            gap: 10px;
-            background-color: rgba(30, 30, 46, 0.8);
-            padding: 10px;
-            border-radius: 8px;
-            margin-left: 20px;
-        }
-        
-        .block-type {
-            width: 40px;
-            height: 40px;
-            border-radius: 5px;
-            cursor: pointer;
-            border: 3px solid transparent;
-            transition: all 0.2s;
-        }
-        
-        .block-type.selected {
-            border-color: #4ecdc4;
-            transform: scale(1.1);
-        }
-        
-        #game-ui {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 20px;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-        
-        .ui-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            background-color: rgba(30, 30, 46, 0.7);
-            padding: 10px;
-            border-radius: 8px;
-            min-width: 200px;
-        }
-        
-        .ui-title {
+        h1 {
             color: #4ecdc4;
-            font-weight: bold;
-            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            font-size: 32px;
+            letter-spacing: 1px;
+        }
+        
+        .game-stats {
+            display: flex;
+            gap: 25px;
             font-size: 18px;
         }
         
-        #canvas-container {
-            flex-grow: 1;
+        .stat-item {
+            background-color: rgba(27, 58, 75, 0.7);
+            padding: 8px 15px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .stat-icon {
+            color: #4ecdc4;
+            font-weight: bold;
+        }
+        
+        #main-content {
+            display: flex;
+            flex: 1;
             overflow: hidden;
         }
         
-        #info-panel {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 10px;
-            max-width: 300px;
-            z-index: 5;
+        #sidebar {
+            width: 280px;
+            background-color: rgba(13, 27, 42, 0.9);
+            border-right: 2px solid #1b3a4b;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            overflow-y: auto;
+            transition: transform 0.3s;
         }
         
-        .instruction {
-            margin-bottom: 8px;
+        .sidebar-section {
+            background-color: rgba(27, 58, 75, 0.6);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid rgba(78, 205, 196, 0.3);
+        }
+        
+        .section-title {
+            color: #4ecdc4;
+            font-size: 20px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid rgba(78, 205, 196, 0.5);
             display: flex;
             align-items: center;
             gap: 10px;
         }
         
-        .key {
-            display: inline-block;
-            padding: 3px 8px;
-            background-color: #333;
-            border-radius: 4px;
-            font-family: monospace;
-            border: 1px solid #555;
-            min-width: 30px;
-            text-align: center;
+        .section-title::before {
+            content: "■";
+            font-size: 24px;
         }
         
-        #loading {
+        #inventory {
+            min-height: 250px;
+        }
+        
+        .inventory-slots {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        
+        .inventory-slot {
+            width: 55px;
+            height: 55px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .inventory-slot:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            border-color: #4ecdc4;
+        }
+        
+        .inventory-slot.selected {
+            background-color: rgba(78, 205, 196, 0.2);
+            border-color: #4ecdc4;
+            transform: scale(1.05);
+        }
+        
+        .slot-count {
+            position: absolute;
+            bottom: 3px;
+            right: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+        
+        .block-preview {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            margin-bottom: 3px;
+        }
+        
+        .slot-name {
+            font-size: 11px;
+            text-align: center;
+            color: #ccc;
+        }
+        
+        #crafting {
+            min-height: 300px;
+        }
+        
+        .crafting-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .crafting-slot {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #craft-result {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(27, 58, 75, 0.8);
+            border: 2px solid #4ecdc4;
+            border-radius: 6px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .craft-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #1b6ca8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .craft-btn:hover {
+            background-color: #4ecdc4;
+            transform: translateY(-2px);
+        }
+        
+        .craft-btn:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        #player-info {
+            background-color: rgba(27, 58, 75, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .health-bar, .food-bar {
+            height: 20px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(to right, #ff416c, #ff4b2b);
+            border-radius: 10px;
+            width: 100%;
+            transition: width 0.5s;
+        }
+        
+        .food-fill {
+            height: 100%;
+            background: linear-gradient(to right, #4CAF50, #8BC34A);
+            border-radius: 10px;
+            width: 100%;
+            transition: width 0.5s;
+        }
+        
+        .bar-label {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+        
+        #canvas-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #game-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        #mobile-controls {
+            display: none;
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            justify-content: space-between;
+            z-index: 50;
+        }
+        
+        .mobile-btn {
+            width: 70px;
+            height: 70px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            user-select: none;
+        }
+        
+        #toggle-sidebar {
+            position: absolute;
+            top: 100px;
+            left: 10px;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(27, 58, 75, 0.9);
+            border: 2px solid #4ecdc4;
+            border-radius: 0 5px 5px 0;
+            color: #4ecdc4;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 99;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0d1b2a 0%, #1b3a4b 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 100;
+            z-index: 1000;
             transition: opacity 1s;
         }
         
         .loader {
+            width: 80px;
+            height: 80px;
             border: 8px solid rgba(78, 205, 196, 0.2);
             border-top: 8px solid #4ecdc4;
             border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
+            animation: spin 1.5s linear infinite;
+            margin-bottom: 30px;
         }
         
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            font-size: 24px;
+            color: #4ecdc4;
+            margin-bottom: 10px;
+        }
+        
+        .loading-subtext {
+            color: #89c2d9;
+            margin-bottom: 30px;
+        }
+        
+        .progress-bar {
+            width: 300px;
+            height: 20px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #4ecdc4, #1b6ca8);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        #hotbar {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 90;
+        }
+        
+        .hotbar-slot {
+            width: 70px;
+            height: 70px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.2s;
+        }
+        
+        .hotbar-slot.selected {
+            border-color: #4ecdc4;
+            background-color: rgba(78, 205, 196, 0.2);
+            transform: translateY(-5px);
+        }
+        
+        .hotbar-number {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background-color: rgba(0, 0, 0, 0.7);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        #minimap {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 180px;
+            height: 180px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 3px solid #4ecdc4;
+            border-radius: 10px;
+            z-index: 80;
+            overflow: hidden;
         }
         
         .block {
@@ -201,23 +467,62 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
-        #block-counter {
-            font-size: 20px;
-            font-weight: bold;
-            color: #4ecdc4;
-        }
-        
-        #coordinates {
-            font-family: monospace;
-            font-size: 18px;
-        }
-        
         .grass { background-color: #7CFC00; }
         .dirt { background-color: #8B4513; }
         .stone { background-color: #808080; }
         .wood { background-color: #8B7355; }
         .leaf { background-color: #32CD32; }
         .glass { background-color: rgba(173, 216, 230, 0.7); }
+        .plank { background-color: #DEB887; }
+        .stick { background-color: #D2B48C; }
+        .coal { background-color: #333; }
+        .iron { background-color: #C0C0C0; }
+        .diamond { background-color: #4EE2EC; }
+        
+        @media (max-width: 1200px) {
+            #sidebar {
+                position: absolute;
+                left: 0;
+                top: 0;
+                height: 100%;
+                z-index: 100;
+                transform: translateX(-100%);
+            }
+            
+            #sidebar.open {
+                transform: translateX(0);
+            }
+            
+            #toggle-sidebar {
+                display: flex;
+            }
+            
+            .game-stats {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            #mobile-controls {
+                display: flex;
+            }
+            
+            #minimap {
+                width: 120px;
+                height: 120px;
+                top: 80px;
+            }
+            
+            .hotbar-slot {
+                width: 60px;
+                height: 60px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -225,371 +530,826 @@
         <div id="header">
             <div class="logo">
                 <div class="logo-icon">M</div>
-                <h1>BrowserCraft</h1>
+                <h1>Minecraft Web Edition</h1>
             </div>
             
-            <div id="block-selector">
-                <div class="block-type grass selected" data-type="grass" title="Трава"></div>
-                <div class="block-type dirt" data-type="dirt" title="Земля"></div>
-                <div class="block-type stone" data-type="stone" title="Камень"></div>
-                <div class="block-type wood" data-type="wood" title="Дерево"></div>
-                <div class="block-type leaf" data-type="leaf" title="Листва"></div>
-                <div class="block-type glass" data-type="glass" title="Стекло"></div>
-            </div>
-            
-            <div class="controls">
-                <button id="reset-btn">Новый мир</button>
-                <button id="toggle-ui">Скрыть UI</button>
-            </div>
-        </div>
-        
-        <div id="game-ui">
-            <div class="ui-panel">
-                <div class="ui-title">Статистика</div>
-                <div>Поставлено блоков: <span id="block-counter">0</span></div>
-                <div>Координаты: <span id="coordinates">X: 0, Y: 5, Z: 0</span></div>
-                <div>Выбранный блок: <span id="selected-block-name">Трава</span></div>
-            </div>
-            
-            <div class="ui-panel">
-                <div class="ui-title">Управление</div>
-                <div class="instruction">
-                    <span class="key">WASD</span> <span>Движение</span>
+            <div class="game-stats">
+                <div class="stat-item">
+                    <span class="stat-icon">⛏️</span>
+                    <span>Блоков: <span id="block-count">0</span></span>
                 </div>
-                <div class="instruction">
-                    <span class="key">ЛКМ</span> <span>Удалить блок</span>
+                <div class="stat-item">
+                    <span class="stat-icon">📍</span>
+                    <span id="coordinates">X: 0, Y: 5, Z: 0</span>
                 </div>
-                <div class="instruction">
-                    <span class="key">ПКМ</span> <span>Поставить блок</span>
-                </div>
-                <div class="instruction">
-                    <span class="key">Пробел</span> <span>Прыжок</span>
-                </div>
-                <div class="instruction">
-                    <span class="key">Shift</span> <span>Присесть</span>
+                <div class="stat-item">
+                    <span class="stat-icon">⏱️</span>
+                    <span id="game-time">День</span>
                 </div>
             </div>
         </div>
         
-        <div id="canvas-container"></div>
-        
-        <div id="info-panel">
-            <div style="margin-bottom: 10px; color: #4ecdc4; font-weight: bold;">Добро пожаловать в BrowserCraft!</div>
-            <div>Создавайте и разрушайте блоки, исследуйте мир. Используйте колесо мыши для изменения скорости.</div>
+        <div id="main-content">
+            <div id="sidebar">
+                <div class="sidebar-section" id="inventory">
+                    <div class="section-title">Инвентарь</div>
+                    <div class="inventory-slots" id="inventory-slots">
+                        <!-- Инвентарь будет заполняться через JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="sidebar-section" id="crafting">
+                    <div class="section-title">Крафт</div>
+                    <div class="crafting-grid" id="crafting-grid">
+                        <!-- Слоты крафта будут заполняться через JavaScript -->
+                    </div>
+                    <div id="craft-result">
+                        <!-- Результат крафта -->
+                    </div>
+                    <button id="craft-btn" class="craft-btn" disabled>Создать</button>
+                </div>
+                
+                <div class="sidebar-section" id="player-info">
+                    <div class="section-title">Персонаж</div>
+                    <div class="health-bar">
+                        <div class="health-fill" id="health-bar" style="width: 100%"></div>
+                        <div class="bar-label">Здоровье: <span id="health-value">100</span></div>
+                    </div>
+                    <div class="food-bar">
+                        <div class="food-fill" id="food-bar" style="width: 100%"></div>
+                        <div class="bar-label">Сытость: <span id="food-value">100</span></div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div>Уровень: <span id="player-level">1</span></div>
+                        <div>Опыт: <span id="player-xp">0</span>/100</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="canvas-wrapper">
+                <canvas id="game-canvas"></canvas>
+                
+                <div id="mobile-controls">
+                    <div class="mobile-btn" id="mobile-left">←</div>
+                    <div class="mobile-btn" id="mobile-up">↑</div>
+                    <div class="mobile-btn" id="mobile-right">→</div>
+                    <div class="mobile-btn" id="mobile-down">↓</div>
+                    <div class="mobile-btn" id="mobile-jump">☰</div>
+                    <div class="mobile-btn" id="mobile-action">⚡</div>
+                </div>
+                
+                <div id="toggle-sidebar">☰</div>
+                
+                <div id="minimap"></div>
+                
+                <div id="hotbar">
+                    <!-- Хотбар будет заполняться через JavaScript -->
+                </div>
+            </div>
         </div>
     </div>
     
-    <div id="loading">
+    <div id="loading-screen">
         <div class="loader"></div>
-        <h2 style="color: #4ecdc4; margin-bottom: 10px;">Загрузка мира...</h2>
-        <p>Пожалуйста, подождите</p>
+        <div class="loading-text">Генерация мира...</div>
+        <div class="loading-subtext">Minecraft Web Edition</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="loading-progress"></div>
+        </div>
+        <div id="loading-status">Загрузка текстур...</div>
     </div>
 
     <!-- Three.js библиотека -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- OrbitControls для управления камерой -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <!-- PointerLockControls для управления от первого лица -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.min.js"></script>
+    <!-- Шрифт для иконок -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <script>
-        // Основные переменные
-        let scene, camera, renderer, controls;
-        let world = [];
-        let blockCount = 0;
-        let selectedBlockType = 'grass';
-        let uiVisible = true;
-        let mouse = { x: 0, y: 0 };
-        let raycaster = new THREE.Raycaster();
+        // ИГРОВЫЕ КОНСТАНТЫ
+        const WORLD_SIZE = 64; // Размер мира в блоках (64x64)
+        const CHUNK_SIZE = 16; // Размер чанка
+        const SEA_LEVEL = 10; // Уровень моря
         
-        // Цвета блоков в Minecraft-стиле
-        const blockColors = {
-            grass: 0x7CFC00,
-            dirt: 0x8B4513,
-            stone: 0x808080,
-            wood: 0x8B7355,
-            leaf: 0x32CD32,
-            glass: 0xADD8E6
+        // Типы блоков и их свойства
+        const BLOCK_TYPES = {
+            air: { id: 0, name: 'Воздух', color: 0x000000, transparent: true, solid: false },
+            grass: { id: 1, name: 'Трава', color: 0x7CFC00, transparent: false, solid: true, durability: 1 },
+            dirt: { id: 2, name: 'Земля', color: 0x8B4513, transparent: false, solid: true, durability: 1 },
+            stone: { id: 3, name: 'Камень', color: 0x808080, transparent: false, solid: true, durability: 3 },
+            wood: { id: 4, name: 'Дерево', color: 0x8B7355, transparent: false, solid: true, durability: 2 },
+            leaf: { id: 5, name: 'Листва', color: 0x32CD32, transparent: true, solid: true, durability: 1 },
+            glass: { id: 6, name: 'Стекло', color: 0xADD8E6, transparent: true, solid: true, durability: 1 },
+            plank: { id: 7, name: 'Доски', color: 0xDEB887, transparent: false, solid: true, durability: 2 },
+            stick: { id: 8, name: 'Палка', color: 0xD2B48C, transparent: false, solid: false, stackable: true },
+            coal: { id: 9, name: 'Уголь', color: 0x333333, transparent: false, solid: false, stackable: true },
+            iron: { id: 10, name: 'Железо', color: 0xC0C0C0, transparent: false, solid: false, stackable: true },
+            diamond: { id: 11, name: 'Алмаз', color: 0x4EE2EC, transparent: false, solid: false, stackable: true }
+        };
+
+        // Рецепты крафта
+        const CRAFTING_RECIPES = [
+            // Доски из дерева
+            {
+                input: [[BLOCK_TYPES.wood.id, 0, 0], [0, 0, 0], [0, 0, 0]],
+                output: { type: BLOCK_TYPES.plank.id, count: 4 }
+            },
+            // Палки из досок
+            {
+                input: [[0, 0, 0], [BLOCK_TYPES.plank.id, 0, 0], [BLOCK_TYPES.plank.id, 0, 0]],
+                output: { type: BLOCK_TYPES.stick.id, count: 4 }
+            },
+            // Верстак из досок
+            {
+                input: [
+                    [BLOCK_TYPES.plank.id, BLOCK_TYPES.plank.id, 0],
+                    [BLOCK_TYPES.plank.id, BLOCK_TYPES.plank.id, 0],
+                    [0, 0, 0]
+                ],
+                output: { type: BLOCK_TYPES.wood.id, count: 1 } // Для простоты верстак = дерево
+            }
+        ];
+
+        // ИГРОВЫЕ ПЕРЕМЕННЫЕ
+        let scene, camera, renderer, controls;
+        let world = []; // 3D-мир для рендеринга
+        let worldData = []; // Данные мира для логики
+        let player = {
+            position: new THREE.Vector3(0, 20, 0),
+            velocity: new THREE.Vector3(0, 0, 0),
+            health: 100,
+            food: 100,
+            level: 1,
+            xp: 0,
+            inventory: [],
+            selectedSlot: 0,
+            onGround: false
         };
         
-        // Инициализация сцены
-        function init() {
+        let dayTime = 0; // 0-1, где 0 = полночь, 0.5 = полдень
+        let daySpeed = 0.00005; // Скорость смены времени
+        let blockCount = 0;
+        let isGamePaused = false;
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let clock = new THREE.Clock();
+        let sunLight, moonLight;
+        
+        // Инициализация игры
+        function initGame() {
+            updateLoadingStatus('Инициализация сцены...', 10);
+            
             // Создание сцены
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x87CEEB); // Небесно-голубой
+            scene.fog = new THREE.Fog(0x87CEEB, 10, 200);
             
-            // Добавление освещения
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            scene.add(ambientLight);
-            
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(50, 100, 50);
-            scene.add(directionalLight);
-            
-            // Создание камеры
+            // Создание камеры от первого лица
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(20, 20, 20);
+            camera.position.copy(player.position);
             
             // Создание рендерера
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer = new THREE.WebGLRenderer({ 
+                canvas: document.getElementById('game-canvas'),
+                antialias: true 
+            });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            document.getElementById('canvas-container').appendChild(renderer.domElement);
             
-            // Добавление управления камерой
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
-            controls.screenSpacePanning = false;
-            controls.minDistance = 5;
-            controls.maxDistance = 100;
-            controls.maxPolarAngle = Math.PI / 2 - 0.1; // Ограничение угла обзора
+            // Настройка управления
+            initControls();
             
-            // Создание простого мира
-            createWorld();
+            // Настройка освещения
+            setupLighting();
             
-            // Добавление обработчиков событий
+            // Генерация мира
+            updateLoadingStatus('Генерация ландшафта...', 30);
+            generateWorld();
+            
+            // Инициализация интерфейса
+            updateLoadingStatus('Загрузка интерфейса...', 70);
+            initUI();
+            initInventory();
+            initCrafting();
+            initHotbar();
+            
+            // Настройка обработчиков событий
             setupEventListeners();
             
-            // Скрытие загрузочного экрана
+            // Запуск игры
+            updateLoadingStatus('Запуск игры...', 90);
             setTimeout(() => {
-                document.getElementById('loading').style.opacity = '0';
+                document.getElementById('loading-screen').style.opacity = '0';
                 setTimeout(() => {
-                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('loading-screen').style.display = 'none';
+                    animate();
                 }, 1000);
-            }, 1500);
-            
-            // Запуск анимации
-            animate();
+            }, 500);
         }
         
-        // Создание мира
-        function createWorld() {
-            // Очистка существующего мира
-            world.forEach(block => {
-                scene.remove(block);
-            });
-            world = [];
-            blockCount = 0;
-            document.getElementById('block-counter').textContent = blockCount;
+        // Инициализация управления
+        function initControls() {
+            controls = new THREE.PointerLockControls(camera, document.body);
             
-            // Создание земли
-            for (let x = -10; x <= 10; x++) {
-                for (let z = -10; z <= 10; z++) {
-                    // Основание из земли
-                    addBlock(x, -1, z, 'dirt');
+            // Запрос блокировки указателя при клике на канвас
+            document.getElementById('game-canvas').addEventListener('click', () => {
+                if (!isGamePaused) {
+                    controls.lock();
+                }
+            });
+            
+            controls.addEventListener('lock', () => {
+                console.log('Управление активировано');
+            });
+            
+            controls.addEventListener('unlock', () => {
+                console.log('Управление деактивировано');
+            });
+        }
+        
+        // Настройка освещения
+        function setupLighting() {
+            // Солнце
+            sunLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            sunLight.position.set(100, 100, 100);
+            sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 2048;
+            sunLight.shadow.mapSize.height = 2048;
+            scene.add(sunLight);
+            
+            // Луна (ночное освещение)
+            moonLight = new THREE.DirectionalLight(0x6666ff, 0.1);
+            moonLight.position.set(-100, 100, -100);
+            scene.add(moonLight);
+            
+            // Рассеянный свет
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+            scene.add(ambientLight);
+        }
+        
+        // Генерация мира
+        function generateWorld() {
+            // Инициализация данных мира
+            worldData = new Array(WORLD_SIZE);
+            for (let x = 0; x < WORLD_SIZE; x++) {
+                worldData[x] = new Array(WORLD_SIZE);
+                for (let z = 0; z < WORLD_SIZE; z++) {
+                    worldData[x][z] = new Array(WORLD_SIZE).fill(0);
+                }
+            }
+            
+            // Генерация высот
+            const heights = [];
+            for (let x = 0; x < WORLD_SIZE; x++) {
+                heights[x] = [];
+                for (let z = 0; z < WORLD_SIZE; z++) {
+                    // Используем шум Перлина для генерации высот
+                    const height = Math.floor(
+                        SEA_LEVEL + 
+                        Math.sin(x * 0.1) * 3 + 
+                        Math.cos(z * 0.1) * 3 +
+                        Math.sin(x * 0.05 + z * 0.05) * 5
+                    );
+                    heights[x][z] = Math.max(1, Math.min(WORLD_SIZE - 5, height));
+                }
+            }
+            
+            // Заполнение мира блоками
+            for (let x = 0; x < WORLD_SIZE; x++) {
+                for (let z = 0; z < WORLD_SIZE; z++) {
+                    const height = heights[x][z];
                     
-                    // Трава сверху
-                    if (x >= -8 && x <= 8 && z >= -8 && z <= 8) {
-                        addBlock(x, 0, z, 'grass');
-                    } else {
-                        addBlock(x, 0, z, 'dirt');
+                    // Земля и трава
+                    for (let y = 0; y < height; y++) {
+                        if (y === height - 1) {
+                            setBlock(x, y, z, BLOCK_TYPES.grass.id);
+                        } else if (y >= height - 4) {
+                            setBlock(x, y, z, BLOCK_TYPES.dirt.id);
+                        } else {
+                            setBlock(x, y, z, BLOCK_TYPES.stone.id);
+                        }
+                    }
+                    
+                    // Вода
+                    for (let y = 0; y < SEA_LEVEL; y++) {
+                        if (getBlock(x, y, z) === BLOCK_TYPES.air.id) {
+                            // Для простоты вода = воздух
+                        }
+                    }
+                    
+                    // Деревья
+                    if (x > 5 && x < WORLD_SIZE - 5 && z > 5 && z < WORLD_SIZE - 5 && 
+                        height > SEA_LEVEL + 2 && Math.random() < 0.02) {
+                        generateTree(x, height, z);
+                    }
+                    
+                    // Пещеры
+                    if (Math.random() < 0.005 && height > SEA_LEVEL + 10) {
+                        generateCave(x, height - 5, z);
+                    }
+                    
+                    // Руды
+                    if (height < SEA_LEVEL + 5 && Math.random() < 0.01) {
+                        generateOreVein(x, Math.floor(height/2), z, BLOCK_TYPES.coal.id, 5);
+                    }
+                    if (height < SEA_LEVEL + 3 && Math.random() < 0.005) {
+                        generateOreVein(x, Math.floor(height/3), z, BLOCK_TYPES.iron.id, 3);
+                    }
+                    if (height < SEA_LEVEL + 2 && Math.random() < 0.001) {
+                        generateOreVein(x, Math.floor(height/4), z, BLOCK_TYPES.diamond.id, 2);
                     }
                 }
             }
             
-            // Создание нескольких деревьев
-            const treePositions = [
-                {x: -5, z: -5},
-                {x: 5, z: -5},
-                {x: -5, z: 5},
-                {x: 5, z: 5},
-                {x: 0, z: 0}
-            ];
-            
-            treePositions.forEach(pos => {
-                // Ствол дерева
-                for (let y = 1; y <= 4; y++) {
-                    addBlock(pos.x, y, pos.z, 'wood');
+            // Создание 3D-объектов для видимых блоков
+            updateLoadingStatus('Создание 3D-объектов...', 50);
+            for (let x = 0; x < WORLD_SIZE; x++) {
+                for (let y = 0; y < WORLD_SIZE; y++) {
+                    for (let z = 0; z < WORLD_SIZE; z++) {
+                        const blockId = getBlock(x, y, z);
+                        if (blockId !== BLOCK_TYPES.air.id) {
+                            createBlockMesh(x, y, z, blockId);
+                        }
+                    }
                 }
-                
-                // Листва дерева
+            }
+        }
+        
+        // Генерация дерева
+        function generateTree(x, y, z) {
+            // Ствол (3-5 блоков высотой)
+            const trunkHeight = 3 + Math.floor(Math.random() * 3);
+            for (let i = 0; i < trunkHeight; i++) {
+                setBlock(x, y + i, z, BLOCK_TYPES.wood.id);
+            }
+            
+            // Листва
+            const leafStart = y + trunkHeight - 2;
+            const leafEnd = y + trunkHeight + 1;
+            for (let ly = leafStart; ly <= leafEnd; ly++) {
+                for (let lx = x - 2; lx <= x + 2; lx++) {
+                    for (let lz = z - 2; lz <= z + 2; lz++) {
+                        // Проверяем границы мира
+                        if (lx < 0 || lx >= WORLD_SIZE || lz < 0 || lz >= WORLD_SIZE || ly < 0 || ly >= WORLD_SIZE) {
+                            continue;
+                        }
+                        
+                        // Не ставим листву в углах на нижнем уровне
+                        if (ly === leafStart && Math.abs(lx - x) === 2 && Math.abs(lz - z) === 2) {
+                            continue;
+                        }
+                        
+                        // Не ставим листву вместо ствола
+                        if (lx === x && lz === z && ly <= y + trunkHeight) {
+                            continue;
+                        }
+                        
+                        // Случайно пропускаем некоторые блоки для естественного вида
+                        if (Math.random() < 0.7) {
+                            setBlock(lx, ly, lz, BLOCK_TYPES.leaf.id);
+                        }
+                    }
+                }
+            }
+            
+            // Верхушка
+            setBlock(x, leafEnd + 1, z, BLOCK_TYPES.leaf.id);
+        }
+        
+        // Генерация пещеры
+        function generateCave(startX, startY, startZ) {
+            const length = 10 + Math.floor(Math.random() * 20);
+            let x = startX, y = startY, z = startZ;
+            
+            for (let i = 0; i < length; i++) {
+                // Удаляем блоки для пещеры
                 for (let dx = -2; dx <= 2; dx++) {
-                    for (let dz = -2; dz <= 2; dz++) {
-                        for (let dy = 4; dy <= 6; dy++) {
-                            // Исключаем углы для более естественной формы
-                            if (Math.abs(dx) === 2 && Math.abs(dz) === 2 && dy > 4) continue;
-                            
-                            // Не ставим листву в центре (там ствол)
-                            if (dx === 0 && dz === 0 && dy <= 4) continue;
-                            
-                            addBlock(pos.x + dx, dy, pos.z + dz, 'leaf');
+                    for (let dy = -2; dy <= 2; dy++) {
+                        for (let dz = -2; dz <= 2; dz++) {
+                            const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                            if (dist <= 2) {
+                                const bx = x + dx;
+                                const by = y + dy;
+                                const bz = z + dz;
+                                
+                                if (bx >= 0 && bx < WORLD_SIZE && 
+                                    by >= 0 && by < WORLD_SIZE && 
+                                    bz >= 0 && bz < WORLD_SIZE) {
+                                    setBlock(bx, by, bz, BLOCK_TYPES.air.id);
+                                }
+                            }
                         }
                     }
                 }
                 
-                // Верхушка дерева
-                addBlock(pos.x, 7, pos.z, 'leaf');
-            });
-            
-            // Создание каменной горки
-            for (let i = 0; i < 5; i++) {
-                for (let j = 0; j <= i; j++) {
-                    for (let k = 0; k <= i; k++) {
-                        if (i === 4 && j > 2 && k > 2) continue; // Делаем вершину меньше
-                        addBlock(-8 + j, i, -8 + k, 'stone');
-                    }
-                }
+                // Случайное изменение направления
+                x += Math.floor(Math.random() * 3) - 1;
+                y += Math.floor(Math.random() * 3) - 1;
+                z += Math.floor(Math.random() * 3) - 1;
+                
+                // Ограничиваем координаты
+                x = Math.max(3, Math.min(WORLD_SIZE - 3, x));
+                y = Math.max(3, Math.min(WORLD_SIZE - 3, y));
+                z = Math.max(3, Math.min(WORLD_SIZE - 3, z));
             }
-            
-            // Создание стеклянной конструкции
-            for (let y = 1; y <= 3; y++) {
-                for (let x = -1; x <= 1; x++) {
-                    addBlock(8 + x, y, 8, 'glass');
-                    addBlock(8 + x, y, 6, 'glass');
-                }
-                for (let z = 0; z <= 2; z++) {
-                    addBlock(7, y, 8 - z, 'glass');
-                    addBlock(9, y, 8 - z, 'glass');
-                }
-            }
-            addBlock(8, 4, 7, 'glass');
         }
         
-        // Добавление блока
-        function addBlock(x, y, z, type) {
-            // Проверяем, есть ли уже блок на этой позиции
-            const existingBlock = world.find(block => 
-                block.position.x === x && 
-                block.position.y === y && 
-                block.position.z === z
-            );
+        // Генерация жилы руды
+        function generateOreVein(x, y, z, oreType, size) {
+            for (let i = 0; i < size; i++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dz = -1; dz <= 1; dz++) {
+                            if (Math.random() < 0.5) {
+                                const bx = x + dx;
+                                const by = y + dy;
+                                const bz = z + dz;
+                                
+                                if (bx >= 0 && bx < WORLD_SIZE && 
+                                    by >= 0 && by < WORLD_SIZE && 
+                                    bz >= 0 && bz < WORLD_SIZE &&
+                                    getBlock(bx, by, bz) === BLOCK_TYPES.stone.id) {
+                                    setBlock(bx, by, bz, oreType);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Случайное смещение
+                x += Math.floor(Math.random() * 3) - 1;
+                y += Math.floor(Math.random() * 3) - 1;
+                z += Math.floor(Math.random() * 3) - 1;
+                
+                // Ограничиваем координаты
+                x = Math.max(1, Math.min(WORLD_SIZE - 1, x));
+                y = Math.max(1, Math.min(WORLD_SIZE - 1, y));
+                z = Math.max(1, Math.min(WORLD_SIZE - 1, z));
+            }
+        }
+        
+        // Установка блока в данных мира
+        function setBlock(x, y, z, blockId) {
+            if (x >= 0 && x < WORLD_SIZE && y >= 0 && y < WORLD_SIZE && z >= 0 && z < WORLD_SIZE) {
+                // Удаляем старый меш, если он есть
+                const oldIndex = world.findIndex(b => 
+                    Math.floor(b.position.x) === x && 
+                    Math.floor(b.position.y) === y && 
+                    Math.floor(b.position.z) === z
+                );
+                
+                if (oldIndex !== -1) {
+                    scene.remove(world[oldIndex]);
+                    world.splice(oldIndex, 1);
+                }
+                
+                // Устанавливаем новый блок
+                worldData[x][z][y] = blockId;
+                
+                // Создаем новый меш, если это не воздух
+                if (blockId !== BLOCK_TYPES.air.id) {
+                    createBlockMesh(x, y, z, blockId);
+                }
+                
+                blockCount++;
+                document.getElementById('block-count').textContent = blockCount;
+            }
+        }
+        
+        // Получение блока из данных мира
+        function getBlock(x, y, z) {
+            if (x >= 0 && x < WORLD_SIZE && y >= 0 && y < WORLD_SIZE && z >= 0 && z < WORLD_SIZE) {
+                return worldData[x][z][y];
+            }
+            return BLOCK_TYPES.air.id; // За пределами мира - воздух
+        }
+        
+        // Создание 3D-объекта блока
+        function createBlockMesh(x, y, z, blockId) {
+            const blockType = Object.values(BLOCK_TYPES).find(b => b.id === blockId);
+            if (!blockType || blockType.transparent) return;
             
-            if (existingBlock) return; // Блок уже существует
-            
-            // Создаем геометрию куба
             const geometry = new THREE.BoxGeometry(1, 1, 1);
-            
-            // Создаем материал с цветом в зависимости от типа блока
             const material = new THREE.MeshLambertMaterial({ 
-                color: blockColors[type],
-                transparent: type === 'glass',
-                opacity: type === 'glass' ? 0.7 : 1.0
+                color: blockType.color,
+                transparent: blockType.transparent || false,
+                opacity: blockType.transparent ? 0.7 : 1.0
             });
             
-            // Создаем меш (объект)
             const cube = new THREE.Mesh(geometry, material);
             cube.position.set(x, y, z);
             cube.castShadow = true;
             cube.receiveShadow = true;
+            cube.userData = { type: blockId, x, y, z };
             
-            // Сохраняем тип блока как пользовательское свойство
-            cube.userData.type = type;
-            
-            // Добавляем в сцену и массив мира
             scene.add(cube);
             world.push(cube);
-            
-            // Обновляем счетчик
-            blockCount++;
-            document.getElementById('block-counter').textContent = blockCount;
         }
         
-        // Удаление блока
-        function removeBlock(x, y, z) {
-            // Находим блок на этой позиции
-            const blockIndex = world.findIndex(block => 
-                Math.floor(block.position.x) === x && 
-                Math.floor(block.position.y) === y && 
-                Math.floor(block.position.z) === z
-            );
+        // Инициализация интерфейса
+        function initUI() {
+            // Обновление координат
+            updatePlayerInfo();
             
-            if (blockIndex !== -1) {
-                // Удаляем блок из сцены
-                scene.remove(world[blockIndex]);
-                // Удаляем из массива
-                world.splice(blockIndex, 1);
+            // Инициализация мини-карты
+            initMinimap();
+            
+            // Переключение сайдбара на мобильных устройствах
+            document.getElementById('toggle-sidebar').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('open');
+            });
+        }
+        
+        // Инициализация инвентаря
+        function initInventory() {
+            const inventorySlots = document.getElementById('inventory-slots');
+            inventorySlots.innerHTML = '';
+            
+            // Начальный инвентарь
+            player.inventory = [
+                { type: BLOCK_TYPES.grass.id, count: 10 },
+                { type: BLOCK_TYPES.dirt.id, count: 15 },
+                { type: BLOCK_TYPES.wood.id, count: 5 },
+                { type: BLOCK_TYPES.stone.id, count: 8 },
+                { type: BLOCK_TYPES.plank.id, count: 0 },
+                { type: BLOCK_TYPES.stick.id, count: 0 },
+                { type: BLOCK_TYPES.coal.id, count: 0 },
+                { type: BLOCK_TYPES.iron.id, count: 0 },
+                { type: BLOCK_TYPES.diamond.id, count: 0 }
+            ];
+            
+            // Создание слотов инвентаря
+            player.inventory.forEach((item, index) => {
+                const slot = document.createElement('div');
+                slot.className = 'inventory-slot';
+                slot.dataset.index = index;
                 
-                // Обновляем счетчик
-                blockCount--;
-                document.getElementById('block-counter').textContent = blockCount;
-                return true;
-            }
-            return false;
-        }
-        
-        // Настройка обработчиков событий
-        function setupEventListeners() {
-            // Изменение размера окна
-            window.addEventListener('resize', onWindowResize);
-            
-            // Обработка кликов мыши
-            renderer.domElement.addEventListener('click', onMouseClick);
-            
-            // Обработка движения мыши
-            renderer.domElement.addEventListener('mousemove', onMouseMove);
-            
-            // Выбор типа блока
-            document.querySelectorAll('.block-type').forEach(blockType => {
-                blockType.addEventListener('click', function() {
-                    // Убираем выделение со всех блоков
-                    document.querySelectorAll('.block-type').forEach(b => {
-                        b.classList.remove('selected');
-                    });
+                if (item && item.count > 0) {
+                    const blockType = Object.values(BLOCK_TYPES).find(b => b.id === item.type);
+                    slot.innerHTML = `
+                        <div class="block-preview" style="background-color: #${blockType.color.toString(16).padStart(6, '0')}"></div>
+                        <div class="slot-name">${blockType.name}</div>
+                        <div class="slot-count">${item.count}</div>
+                    `;
+                }
+                
+                slot.addEventListener('click', () => {
+                    // Выбор слота
+                    document.querySelectorAll('.inventory-slot').forEach(s => s.classList.remove('selected'));
+                    slot.classList.add('selected');
                     
-                    // Выделяем выбранный блок
-                    this.classList.add('selected');
-                    selectedBlockType = this.dataset.type;
-                    
-                    // Обновляем название выбранного блока
-                    const blockNames = {
-                        grass: 'Трава',
-                        dirt: 'Земля',
-                        stone: 'Камень',
-                        wood: 'Дерево',
-                        leaf: 'Листва',
-                        glass: 'Стекло'
-                    };
-                    document.getElementById('selected-block-name').textContent = blockNames[selectedBlockType];
+                    if (item && item.count > 0) {
+                        player.selectedSlot = index;
+                        updateHotbar();
+                    }
                 });
+                
+                inventorySlots.appendChild(slot);
             });
             
-            // Кнопка сброса мира
-            document.getElementById('reset-btn').addEventListener('click', createWorld);
+            // Выбираем первый слот
+            if (inventorySlots.firstChild) {
+                inventorySlots.firstChild.click();
+            }
+        }
+        
+        // Инициализация крафта
+        function initCrafting() {
+            const craftingGrid = document.getElementById('crafting-grid');
+            craftingGrid.innerHTML = '';
             
-            // Кнопка скрытия/показа UI
-            document.getElementById('toggle-ui').addEventListener('click', function() {
-                uiVisible = !uiVisible;
-                const uiElements = document.getElementById('game-ui');
-                const infoPanel = document.getElementById('info-panel');
+            // Создание слотов крафта (3x3)
+            for (let i = 0; i < 9; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'crafting-slot';
+                slot.dataset.index = i;
+                slot.addEventListener('click', () => {
+                    if (player.inventory[player.selectedSlot] && player.inventory[player.selectedSlot].count > 0) {
+                        const selectedItem = player.inventory[player.selectedSlot];
+                        slot.innerHTML = `
+                            <div class="block-preview" style="background-color: #${Object.values(BLOCK_TYPES).find(b => b.id === selectedItem.type).color.toString(16).padStart(6, '0')}"></div>
+                        `;
+                        slot.dataset.block = selectedItem.type;
+                        checkCraftingRecipe();
+                    }
+                });
+                craftingGrid.appendChild(slot);
+            }
+            
+            // Кнопка крафта
+            document.getElementById('craft-btn').addEventListener('click', performCrafting);
+        }
+        
+        // Проверка рецептов крафта
+        function checkCraftingRecipe() {
+            const craftingSlots = document.querySelectorAll('.crafting-slot');
+            const grid = [];
+            
+            // Собираем сетку крафта
+            for (let i = 0; i < 9; i++) {
+                const row = Math.floor(i / 3);
+                const col = i % 3;
                 
-                if (uiVisible) {
-                    uiElements.style.display = 'flex';
-                    infoPanel.style.display = 'block';
-                    this.textContent = 'Скрыть UI';
+                if (!grid[row]) grid[row] = [];
+                grid[row][col] = parseInt(craftingSlots[i].dataset.block) || 0;
+            }
+            
+            // Проверяем все рецепты
+            for (const recipe of CRAFTING_RECIPES) {
+                let match = true;
+                
+                for (let r = 0; r < 3; r++) {
+                    for (let c = 0; c < 3; c++) {
+                        if (recipe.input[r][c] !== grid[r][c]) {
+                            match = false;
+                            break;
+                        }
+                    }
+                    if (!match) break;
+                }
+                
+                if (match) {
+                    // Нашли подходящий рецепт
+                    const result = document.getElementById('craft-result');
+                    const blockType = Object.values(BLOCK_TYPES).find(b => b.id === recipe.output.type);
+                    result.innerHTML = `
+                        <div class="block-preview" style="background-color: #${blockType.color.toString(16).padStart(6, '0')}"></div>
+                        <div class="slot-count" style="bottom: 5px; right: 5px;">${recipe.output.count}</div>
+                    `;
+                    result.dataset.result = JSON.stringify(recipe.output);
+                    
+                    document.getElementById('craft-btn').disabled = false;
+                    return;
+                }
+            }
+            
+            // Рецепт не найден
+            document.getElementById('craft-result').innerHTML = '';
+            document.getElementById('craft-result').dataset.result = '';
+            document.getElementById('craft-btn').disabled = true;
+        }
+        
+        // Выполнение крафта
+        function performCrafting() {
+            const result = document.getElementById('craft-result').dataset.result;
+            if (!result) return;
+            
+            const output = JSON.parse(result);
+            
+            // Добавляем результат в инвентарь
+            const existingItem = player.inventory.find(item => item.type === output.type);
+            if (existingItem) {
+                existingItem.count += output.count;
+            } else {
+                // Ищем пустой слот
+                const emptySlot = player.inventory.findIndex(item => item.count === 0);
+                if (emptySlot !== -1) {
+                    player.inventory[emptySlot] = { type: output.type, count: output.count };
                 } else {
-                    uiElements.style.display = 'none';
-                    infoPanel.style.display = 'none';
-                    this.textContent = 'Показать UI';
+                    // Нет места в инвентаре
+                    alert('Нет места в инвентаре!');
+                    return;
+                }
+            }
+            
+            // Очищаем сетку крафта
+            document.querySelectorAll('.crafting-slot').forEach(slot => {
+                slot.innerHTML = '';
+                slot.dataset.block = '';
+            });
+            
+            // Обновляем интерфейс
+            updateInventoryUI();
+            checkCraftingRecipe();
+        }
+        
+        // Инициализация хотбара
+        function initHotbar() {
+            const hotbar = document.getElementById('hotbar');
+            hotbar.innerHTML = '';
+            
+            // Создание 9 слотов хотбара
+            for (let i = 0; i < 9; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'hotbar-slot';
+                slot.dataset.index = i;
+                
+                slot.innerHTML = `
+                    <div class="hotbar-number">${i + 1}</div>
+                `;
+                
+                slot.addEventListener('click', () => {
+                    selectHotbarSlot(i);
+                });
+                
+                hotbar.appendChild(slot);
+            }
+            
+            // Выбираем первый слот
+            selectHotbarSlot(0);
+            
+            // Обработка клавиш 1-9 для выбора слотов
+            document.addEventListener('keydown', (e) => {
+                const key = parseInt(e.key);
+                if (key >= 1 && key <= 9) {
+                    selectHotbarSlot(key - 1);
+                }
+            });
+        }
+        
+        // Выбор слота хотбара
+        function selectHotbarSlot(index) {
+            // Обновляем визуальное выделение
+            document.querySelectorAll('.hotbar-slot').forEach(slot => {
+                slot.classList.remove('selected');
+            });
+            document.querySelector(`.hotbar-slot[data-index="${index}"]`).classList.add('selected');
+            
+            // Обновляем выбранный слот инвентаря
+            player.selectedSlot = index;
+            
+            // Обновляем содержимое хотбара
+            updateHotbar();
+        }
+        
+        // Обновление хотбара
+        function updateHotbar() {
+            const hotbarSlots = document.querySelectorAll('.hotbar-slot');
+            
+            player.inventory.forEach((item, index) => {
+                if (index >= hotbarSlots.length) return;
+                
+                const slot = hotbarSlots[index];
+                if (item && item.count > 0) {
+                    const blockType = Object.values(BLOCK_TYPES).find(b => b.id === item.type);
+                    slot.innerHTML = `
+                        <div class="hotbar-number">${index + 1}</div>
+                        <div class="block-preview" style="background-color: #${blockType.color.toString(16).padStart(6, '0')}"></div>
+                        <div class="slot-count" style="bottom: 3px; right: 5px;">${item.count}</div>
+                    `;
+                } else {
+                    slot.innerHTML = `<div class="hotbar-number">${index + 1}</div>`;
+                }
+            });
+        }
+        
+        // Инициализация мини-карты
+        function initMinimap() {
+            // Мини-карта будет обновляться в анимационном цикле
+        }
+        
+        // Обновление информации о игроке
+        function updatePlayerInfo() {
+            // Координаты
+            document.getElementById('coordinates').textContent = 
+                `X: ${Math.floor(player.position.x)}, Y: ${Math.floor(player.position.y)}, Z: ${Math.floor(player.position.z)}`;
+            
+            // Здоровье и сытость
+            document.getElementById('health-value').textContent = player.health;
+            document.getElementById('health-bar').style.width = `${player.health}%`;
+            
+            document.getElementById('food-value').textContent = player.food;
+            document.getElementById('food-bar').style.width = `${player.food}%`;
+            
+            // Уровень и опыт
+            document.getElementById('player-level').textContent = player.level;
+            document.getElementById('player-xp').textContent = player.xp;
+            
+            // Время суток
+            const timeText = dayTime < 0.25 ? 'Ночь' : 
+                            dayTime < 0.5 ? 'Утро' : 
+                            dayTime < 0.75 ? 'День' : 'Вечер';
+            document.getElementById('game-time').textContent = timeText;
+        }
+        
+        // Обновление инвентаря в UI
+        function updateInventoryUI() {
+            const inventorySlots = document.querySelectorAll('.inventory-slot');
+            
+            player.inventory.forEach((item, index) => {
+                const slot = inventorySlots[index];
+                if (item && item.count > 0) {
+                    const blockType = Object.values(BLOCK_TYPES).find(b => b.id === item.type);
+                    slot.innerHTML = `
+                        <div class="block-preview" style="background-color: #${blockType.color.toString(16).padStart(6, '0')}"></div>
+                        <div class="slot-name">${blockType.name}</div>
+                        <div class="slot-count">${item.count}</div>
+                    `;
+                } else {
+                    slot.innerHTML = '';
                 }
             });
             
-            // Обработка клавиш для управления
-            document.addEventListener('keydown', onKeyDown);
+            updateHotbar();
         }
         
-        // Обработка изменения размера окна
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-        
-        // Обработка движения мыши
-        function onMouseMove(event) {
-            // Вычисляем позицию мыши в нормализованных координатах устройства
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-            
-            // Обновляем координаты камеры в UI
-            updateCoordinates();
-        }
-        
-        // Обработка клика мыши
-        function onMouseClick(event) {
-            // Устанавливаем начало луча из позиции камеры
+        // Обработка взаимодействия с блоком
+        function handleBlockInteraction() {
+            // Бросаем луч из камеры
             raycaster.setFromCamera(mouse, camera);
             
-            // Вычисляем пересечения луча с объектами сцены
+            // Находим пересечения с блоками
             const intersects = raycaster.intersectObjects(world);
             
             if (intersects.length > 0) {
@@ -602,81 +1362,291 @@
                 const newY = Math.round(block.position.y + faceNormal.y);
                 const newZ = Math.round(block.position.z + faceNormal.z);
                 
-                if (event.button === 0) { // Левая кнопка мыши - удалить блок
-                    removeBlock(block.position.x, block.position.y, block.position.z);
-                } else if (event.button === 2) { // Правая кнопка мыши - добавить блок
-                    addBlock(newX, newY, newZ, selectedBlockType);
+                // Проверяем, есть ли выбранный блок в инвентаре
+                const selectedItem = player.inventory[player.selectedSlot];
+                
+                if (selectedItem && selectedItem.count > 0) {
+                    // Пытаемся поставить блок
+                    if (getBlock(newX, newY, newZ) === BLOCK_TYPES.air.id) {
+                        setBlock(newX, newY, newZ, selectedItem.type);
+                        selectedItem.count--;
+                        
+                        if (selectedItem.count === 0) {
+                            player.inventory[player.selectedSlot] = null;
+                        }
+                        
+                        updateInventoryUI();
+                    }
+                }
+            }
+        }
+        
+        // Удаление блока
+        function removeBlock() {
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(world);
+            
+            if (intersects.length > 0) {
+                const intersect = intersects[0];
+                const block = intersect.object;
+                
+                // Получаем тип блока
+                const blockType = Object.values(BLOCK_TYPES).find(b => b.id === block.userData.type);
+                
+                // Добавляем блок в инвентарь
+                let existingItem = player.inventory.find(item => item && item.type === block.userData.type);
+                
+                if (existingItem) {
+                    existingItem.count++;
+                } else {
+                    // Ищем пустой слот
+                    const emptySlot = player.inventory.findIndex(item => !item || item.count === 0);
+                    if (emptySlot !== -1) {
+                        player.inventory[emptySlot] = { 
+                            type: block.userData.type, 
+                            count: 1 
+                        };
+                    }
                 }
                 
-                event.preventDefault();
+                // Удаляем блок из мира
+                setBlock(block.position.x, block.position.y, block.position.z, BLOCK_TYPES.air.id);
+                
+                // Обновляем интерфейс
+                updateInventoryUI();
+                
+                // Даем опыт за добычу
+                player.xp += 5;
+                if (player.xp >= 100) {
+                    player.level++;
+                    player.xp = player.xp - 100;
+                    player.health = 100; // Лечение при повышении уровня
+                }
+                updatePlayerInfo();
             }
         }
         
-        // Обработка нажатия клавиш
-        function onKeyDown(event) {
-            // Управление камерой
-            const moveSpeed = 0.5;
+        // Настройка обработчиков событий
+        function setupEventListeners() {
+            // Изменение размера окна
+            window.addEventListener('resize', onWindowResize);
             
-            switch(event.key.toLowerCase()) {
-                case 'w':
-                    camera.position.x -= Math.sin(camera.rotation.y) * moveSpeed;
-                    camera.position.z -= Math.cos(camera.rotation.y) * moveSpeed;
-                    break;
-                case 's':
-                    camera.position.x += Math.sin(camera.rotation.y) * moveSpeed;
-                    camera.position.z += Math.cos(camera.rotation.y) * moveSpeed;
-                    break;
-                case 'a':
-                    camera.position.x -= Math.cos(camera.rotation.y) * moveSpeed;
-                    camera.position.z += Math.sin(camera.rotation.y) * moveSpeed;
-                    break;
-                case 'd':
-                    camera.position.x += Math.cos(camera.rotation.y) * moveSpeed;
-                    camera.position.z -= Math.sin(camera.rotation.y) * moveSpeed;
-                    break;
-                case ' ':
-                    camera.position.y += moveSpeed; // Прыжок
-                    break;
-                case 'shift':
-                    camera.position.y -= moveSpeed; // Присесть
-                    break;
+            // Клики мыши
+            document.addEventListener('mousedown', (e) => {
+                if (controls.isLocked && !isGamePaused) {
+                    if (e.button === 0) { // Левая кнопка - удалить блок
+                        removeBlock();
+                    } else if (e.button === 2) { // Правая кнопка - поставить блок
+                        handleBlockInteraction();
+                    }
+                }
+            });
+            
+            // Движение мыши
+            document.addEventListener('mousemove', (e) => {
+                // Нормализуем координаты мыши
+                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            });
+            
+            // Управление с клавиатуры
+            const keys = {};
+            document.addEventListener('keydown', (e) => {
+                keys[e.key.toLowerCase()] = true;
+                
+                // Пауза игры при нажатии Escape
+                if (e.key === 'Escape') {
+                    if (controls.isLocked) {
+                        controls.unlock();
+                    } else {
+                        controls.lock();
+                    }
+                }
+                
+                // Переключение сайдбара
+                if (e.key === 'i' || e.key === 'и') {
+                    document.getElementById('sidebar').classList.toggle('open');
+                }
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                keys[e.key.toLowerCase()] = false;
+            });
+            
+            // Обновление движения игрока
+            function updatePlayerMovement() {
+                if (!controls.isLocked || isGamePaused) return;
+                
+                const speed = 0.2;
+                const velocity = player.velocity;
+                
+                // Движение вперед/назад
+                if (keys['w'] || keys['ц']) {
+                    velocity.x -= Math.sin(camera.rotation.y) * speed;
+                    velocity.z -= Math.cos(camera.rotation.y) * speed;
+                }
+                if (keys['s'] || keys['ы']) {
+                    velocity.x += Math.sin(camera.rotation.y) * speed;
+                    velocity.z += Math.cos(camera.rotation.y) * speed;
+                }
+                
+                // Движение влево/вправо
+                if (keys['a'] || keys['ф']) {
+                    velocity.x -= Math.cos(camera.rotation.y) * speed;
+                    velocity.z += Math.sin(camera.rotation.y) * speed;
+                }
+                if (keys['d'] || keys['в']) {
+                    velocity.x += Math.cos(camera.rotation.y) * speed;
+                    velocity.z -= Math.sin(camera.rotation.y) * speed;
+                }
+                
+                // Прыжок
+                if ((keys[' '] || keys['spacebar']) && player.onGround) {
+                    velocity.y = 0.3;
+                    player.onGround = false;
+                }
+                
+                // Гравитация
+                velocity.y -= 0.02;
+                
+                // Ограничение скорости
+                velocity.x *= 0.9;
+                velocity.z *= 0.9;
+                
+                // Проверка коллизий
+                checkCollisions();
+                
+                // Обновление позиции игрока
+                player.position.add(velocity);
+                camera.position.copy(player.position);
+                camera.position.y += 1.6; // Высота глаз игрока
+                
+                // Обновление информации
+                updatePlayerInfo();
             }
             
-            updateCoordinates();
+            // Добавляем обновление движения в игровой цикл
+            setInterval(updatePlayerMovement, 16); // ~60 FPS
         }
         
-        // Обновление координат в UI
-        function updateCoordinates() {
-            const x = Math.round(camera.position.x);
-            const y = Math.round(camera.position.y);
-            const z = Math.round(camera.position.z);
-            document.getElementById('coordinates').textContent = `X: ${x}, Y: ${y}, Z: ${z}`;
+        // Проверка коллизий
+        function checkCollisions() {
+            const pos = player.position;
+            const vel = player.velocity;
+            
+            // Проверяем коллизии по осям
+            player.onGround = false;
+            
+            // Простая проверка коллизий с блоками
+            for (let dx = -0.5; dx <= 0.5; dx += 1) {
+                for (let dy = -1; dy <= 0.5; dy += 1.5) {
+                    for (let dz = -0.5; dz <= 0.5; dz += 1) {
+                        const checkX = Math.floor(pos.x + dx + vel.x);
+                        const checkY = Math.floor(pos.y + dy + vel.y);
+                        const checkZ = Math.floor(pos.z + dz + vel.z);
+                        
+                        const blockId = getBlock(checkX, checkY, checkZ);
+                        if (blockId !== BLOCK_TYPES.air.id) {
+                            const blockType = Object.values(BLOCK_TYPES).find(b => b.id === blockId);
+                            if (blockType && blockType.solid) {
+                                // Коллизия по Y (пол)
+                                if (dy < 0 && vel.y < 0) {
+                                    player.position.y = checkY + 1.5;
+                                    vel.y = 0;
+                                    player.onGround = true;
+                                }
+                                // Коллизия по Y (потолок)
+                                if (dy > 0 && vel.y > 0) {
+                                    player.position.y = checkY - 0.5;
+                                    vel.y = 0;
+                                }
+                                // Коллизия по X
+                                if (dx !== 0) {
+                                    vel.x = 0;
+                                }
+                                // Коллизия по Z
+                                if (dz !== 0) {
+                                    vel.z = 0;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
         
-        // Анимация
+        // Обработка изменения размера окна
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        // Обновление статуса загрузки
+        function updateLoadingStatus(text, progress) {
+            document.getElementById('loading-status').textContent = text;
+            document.getElementById('loading-progress').style.width = `${progress}%`;
+        }
+        
+        // Игровой цикл
         function animate() {
             requestAnimationFrame(animate);
             
-            // Обновление контролов камеры
-            controls.update();
+            if (isGamePaused) return;
             
-            // Вращение солнца (направленного света) для симуляции дня/ночи
-            const time = Date.now() * 0.0005;
-            const light = scene.children.find(child => child instanceof THREE.DirectionalLight);
-            if (light) {
-                light.position.x = Math.cos(time) * 100;
-                light.position.z = Math.sin(time) * 100;
+            // Обновление времени суток
+            dayTime += daySpeed;
+            if (dayTime >= 1) dayTime = 0;
+            
+            // Обновление освещения в зависимости от времени суток
+            const sunIntensity = Math.max(0.1, Math.sin(dayTime * Math.PI * 2) * 0.5 + 0.5);
+            sunLight.intensity = sunIntensity * 0.8;
+            moonLight.intensity = (1 - sunIntensity) * 0.3;
+            
+            // Позиционирование солнца и луны
+            const sunAngle = dayTime * Math.PI * 2;
+            sunLight.position.x = Math.cos(sunAngle) * 100;
+            sunLight.position.y = Math.sin(sunAngle) * 100 + 50;
+            sunLight.position.z = Math.sin(sunAngle) * 100;
+            
+            moonLight.position.x = Math.cos(sunAngle + Math.PI) * 100;
+            moonLight.position.y = Math.sin(sunAngle + Math.PI) * 100 + 50;
+            moonLight.position.z = Math.sin(sunAngle + Math.PI) * 100;
+            
+            // Обновление цвета неба
+            const skyColor = new THREE.Color();
+            if (dayTime < 0.25 || dayTime > 0.75) {
+                // Ночь
+                skyColor.setHSL(0.7, 0.5, 0.1);
+            } else if (dayTime < 0.5) {
+                // Утро/день
+                const t = (dayTime - 0.25) * 4;
+                skyColor.setHSL(0.6, 0.7, 0.5 + t * 0.3);
+            } else {
+                // Вечер
+                const t = (0.75 - dayTime) * 4;
+                skyColor.setHSL(0.05, 0.8, 0.4 + t * 0.2);
             }
+            scene.fog.color.copy(skyColor);
+            scene.background = skyColor;
+            
+            // Обновление тумана
+            scene.fog.near = 20;
+            scene.fog.far = 150;
             
             // Рендеринг сцены
             renderer.render(scene, camera);
         }
         
-        // Запуск приложения после загрузки страницы
-        window.addEventListener('load', init);
+        // Запуск игры при загрузке страницы
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                initGame();
+            }, 500);
+        });
         
-        // Предотвращение контекстного меню для правой кнопки мыши
-        document.addEventListener('contextmenu', event => event.preventDefault());
+        // Предотвращение контекстного меню
+        document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
-</html>s
+</html>
