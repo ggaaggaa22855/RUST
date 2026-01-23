@@ -9,7 +9,8 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            touch-action: none;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         
         body {
@@ -20,7 +21,7 @@
             height: 100vh;
             width: 100vw;
             user-select: none;
-            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
         }
         
         #game-container {
@@ -28,6 +29,11 @@
             width: 100%;
             height: 100vh;
             overflow: hidden;
+        }
+        
+        canvas {
+            display: block;
+            outline: none;
         }
         
         #crosshair {
@@ -39,11 +45,12 @@
             height: 20px;
             z-index: 100;
             pointer-events: none;
+            display: block;
         }
         
         .crosshair-line {
             position: absolute;
-            background-color: rgba(255, 255, 255, 0.8);
+            background-color: rgba(255, 255, 255, 0.9);
         }
         
         .horizontal {
@@ -87,22 +94,23 @@
         .joystick-base {
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.6);
             border-radius: 50%;
             position: absolute;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.4);
         }
         
         .joystick-handle {
-            width: 60px;
-            height: 60px;
-            background: rgba(255, 255, 255, 0.8);
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.9);
             border-radius: 50%;
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            border: 2px solid rgba(0, 0, 0, 0.5);
+            border: 3px solid rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
         
         #action-buttons {
@@ -117,53 +125,47 @@
         }
         
         .action-button {
-            width: 70px;
-            height: 70px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
-            background: rgba(0, 0, 0, 0.7);
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid rgba(255, 255, 255, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 32px;
             color: white;
             font-weight: bold;
             cursor: pointer;
             user-select: none;
             transition: all 0.1s;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
         
         .action-button:active {
-            transform: scale(0.9);
+            transform: scale(0.85);
             background: rgba(0, 0, 0, 0.9);
-            border-color: rgba(255, 255, 255, 0.6);
+            border-color: rgba(255, 255, 255, 0.7);
         }
         
         #jump-button {
-            background: rgba(30, 144, 255, 0.7);
-            border-color: rgba(135, 206, 250, 0.5);
+            background: rgba(30, 144, 255, 0.8);
+            border-color: rgba(135, 206, 250, 0.6);
         }
         
         #inventory-button {
-            background: rgba(50, 205, 50, 0.7);
-            border-color: rgba(144, 238, 144, 0.5);
+            background: rgba(50, 205, 50, 0.8);
+            border-color: rgba(144, 238, 144, 0.6);
         }
         
         #break-button {
-            background: rgba(220, 20, 60, 0.7);
-            border-color: rgba(255, 99, 71, 0.5);
-            width: 80px;
-            height: 80px;
-            font-size: 28px;
+            background: rgba(220, 20, 60, 0.8);
+            border-color: rgba(255, 99, 71, 0.6);
         }
         
         #place-button {
-            background: rgba(30, 144, 255, 0.7);
-            border-color: rgba(135, 206, 250, 0.5);
-            width: 80px;
-            height: 80px;
-            font-size: 28px;
+            background: rgba(30, 144, 255, 0.8);
+            border-color: rgba(135, 206, 250, 0.6);
         }
         
         #hotbar {
@@ -172,72 +174,77 @@
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 8px;
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 12px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            gap: 10px;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 12px;
+            border-radius: 15px;
+            border: 3px solid rgba(255, 255, 255, 0.4);
             z-index: 55;
             pointer-events: auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
         
         .hotbar-slot {
-            width: 55px;
-            height: 55px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.15);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
-            transition: all 0.1s;
+            transition: all 0.2s;
+            cursor: pointer;
         }
         
         .hotbar-slot.selected {
             border-color: #fff;
-            background-color: rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.25);
             transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
         }
         
         .hotbar-slot .block-preview {
-            width: 40px;
-            height: 40px;
-            border-radius: 4px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            width: 45px;
+            height: 45px;
+            border-radius: 6px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
         }
         
         .slot-number {
             position: absolute;
-            top: 2px;
-            right: 2px;
-            background-color: rgba(0, 0, 0, 0.7);
+            top: 3px;
+            right: 3px;
+            background-color: rgba(0, 0, 0, 0.9);
             color: white;
-            font-size: 11px;
-            width: 16px;
-            height: 16px;
+            font-size: 12px;
+            width: 20px;
+            height: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
             font-weight: bold;
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
         
         .item-count {
             position: absolute;
-            bottom: 2px;
-            right: 2px;
-            background-color: rgba(0, 0, 0, 0.7);
+            bottom: 3px;
+            right: 3px;
+            background-color: rgba(0, 0, 0, 0.9);
             color: white;
-            font-size: 11px;
-            min-width: 16px;
-            height: 16px;
+            font-size: 12px;
+            min-width: 20px;
+            height: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 4px;
+            border-radius: 5px;
             font-weight: bold;
-            padding: 0 3px;
+            padding: 0 4px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
         
         #inventory {
@@ -246,8 +253,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.95);
-            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.97);
+            padding: 25px;
             border-radius: 0;
             display: none;
             z-index: 200;
@@ -258,25 +265,25 @@
         .inventory-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 12px;
+            margin-bottom: 25px;
         }
         
         .inventory-title {
             color: #4ecdc4;
             font-weight: bold;
-            margin-bottom: 20px;
-            font-size: 28px;
+            margin-bottom: 25px;
+            font-size: 32px;
             text-align: center;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            text-shadow: 0 3px 6px rgba(0, 0, 0, 0.7);
         }
         
         .inventory-slot {
             width: 100%;
-            height: 80px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
+            height: 90px;
+            background-color: rgba(255, 255, 255, 0.15);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -285,26 +292,28 @@
             transition: all 0.2s;
         }
         
-        .inventory-slot:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.4);
+        .inventory-slot:active {
+            transform: scale(0.95);
+            background-color: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
         }
         
         #stats {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 10px;
+            top: 25px;
+            left: 25px;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 18px;
+            border-radius: 12px;
             pointer-events: all;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            max-width: 200px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            max-width: 220px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
         
         .stat {
-            margin-bottom: 5px;
-            font-size: 14px;
+            margin-bottom: 8px;
+            font-size: 16px;
         }
         
         .stat-value {
@@ -314,28 +323,29 @@
         
         #block-preview {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            top: 25px;
+            right: 25px;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 18px;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
             text-align: center;
-            max-width: 150px;
+            max-width: 160px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
         
         #selected-block {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 10px;
-            border-radius: 8px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 12px;
+            border-radius: 10px;
+            border: 3px solid rgba(255, 255, 255, 0.4);
         }
         
         #selected-block-name {
             font-weight: bold;
             color: #4ecdc4;
-            font-size: 14px;
+            font-size: 16px;
         }
         
         #loading {
@@ -354,13 +364,13 @@
         }
         
         .loader {
-            border: 8px solid rgba(78, 205, 196, 0.2);
-            border-top: 8px solid #4ecdc4;
+            border: 10px solid rgba(78, 205, 196, 0.2);
+            border-top: 10px solid #4ecdc4;
             border-radius: 50%;
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             animation: spin 1s linear infinite;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         
         @keyframes spin {
@@ -383,31 +393,33 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.9);
-            padding: 20px 30px;
-            border-radius: 12px;
+            background-color: rgba(0, 0, 0, 0.95);
+            padding: 25px 35px;
+            border-radius: 15px;
             text-align: center;
-            font-size: 22px;
+            font-size: 24px;
             color: #4ecdc4;
             z-index: 150;
             opacity: 0;
             transition: opacity 0.5s;
             pointer-events: none;
-            border: 2px solid rgba(78, 205, 196, 0.5);
+            border: 3px solid rgba(78, 205, 196, 0.6);
             max-width: 90%;
+            box-shadow: 0 0 40px rgba(78, 205, 196, 0.4);
         }
         
         #health-bar {
             position: absolute;
-            top: 20px;
+            top: 25px;
             left: 50%;
             transform: translateX(-50%);
-            width: 200px;
-            height: 30px;
-            background-color: rgba(0, 0, 0, 0.7);
-            border-radius: 15px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            width: 220px;
+            height: 35px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 18px;
+            border: 3px solid rgba(255, 255, 255, 0.4);
             overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
         
         #health-fill {
@@ -428,42 +440,44 @@
             justify-content: center;
             font-weight: bold;
             color: white;
-            font-size: 14px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            font-size: 16px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
         }
         
         #block-distance {
             position: absolute;
-            top: 60px;
+            top: 70px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 8px 15px;
-            border-radius: 10px;
-            font-size: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
             font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
         
         .close-button {
-            padding: 12px 30px;
+            padding: 15px 35px;
             background: linear-gradient(135deg, #4a4a6d, #3a3a5d);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             font-weight: bold;
             transition: all 0.3s;
-            margin-top: 20px;
-            font-size: 18px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            margin-top: 25px;
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
             width: 100%;
-            max-width: 300px;
+            max-width: 350px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
         }
         
         .close-button:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            transform: translateY(3px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
         }
         
         #cursor-lock-info {
@@ -471,13 +485,15 @@
             bottom: 200px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            padding: 15px;
-            border-radius: 10px;
+            background-color: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 12px;
             text-align: center;
-            font-size: 16px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            font-size: 18px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
             max-width: 90%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+            z-index: 70;
         }
         
         .touch-area {
@@ -501,6 +517,34 @@
         
         @media (max-width: 768px) {
             .hotbar-slot {
+                width: 55px;
+                height: 55px;
+            }
+            
+            .hotbar-slot .block-preview {
+                width: 40px;
+                height: 40px;
+            }
+            
+            #movement-joystick {
+                width: 140px;
+                height: 140px;
+            }
+            
+            .joystick-handle {
+                width: 65px;
+                height: 65px;
+            }
+            
+            .action-button {
+                width: 75px;
+                height: 75px;
+                font-size: 28px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .hotbar-slot {
                 width: 50px;
                 height: 50px;
             }
@@ -516,59 +560,34 @@
             }
             
             .joystick-handle {
-                width: 50px;
-                height: 50px;
-            }
-            
-            .action-button {
                 width: 60px;
                 height: 60px;
-                font-size: 20px;
-            }
-            
-            #break-button, #place-button {
-                width: 70px;
-                height: 70px;
-                font-size: 24px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .hotbar-slot {
-                width: 45px;
-                height: 45px;
-            }
-            
-            .hotbar-slot .block-preview {
-                width: 30px;
-                height: 30px;
-            }
-            
-            #movement-joystick {
-                width: 120px;
-                height: 120px;
-            }
-            
-            .joystick-handle {
-                width: 45px;
-                height: 45px;
             }
             
             .action-button {
-                width: 55px;
-                height: 55px;
-                font-size: 18px;
-            }
-            
-            #break-button, #place-button {
-                width: 65px;
-                height: 65px;
-                font-size: 22px;
+                width: 70px;
+                height: 70px;
+                font-size: 26px;
             }
             
             .inventory-slot {
-                height: 70px;
+                height: 80px;
             }
+        }
+        
+        .fullscreen-button {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 70;
+            pointer-events: auto;
         }
     </style>
 </head>
@@ -596,12 +615,13 @@
                 <div class="stat">X: <span class="stat-value" id="coord-x">0</span></div>
                 <div class="stat">Y: <span class="stat-value" id="coord-y">5</span></div>
                 <div class="stat">Z: <span class="stat-value" id="coord-z">0</span></div>
+                <div class="stat">Состояние: <span class="stat-value" id="player-state">На земле</span></div>
             </div>
             
             <div id="block-preview">
                 <div id="selected-block" class="block-preview grass"></div>
                 <div id="selected-block-name">Трава</div>
-                <div id="selected-block-count" style="color: white; font-size: 12px;">x0</div>
+                <div id="selected-block-count" style="color: white; font-size: 14px; margin-top: 5px;">x0</div>
             </div>
             
             <div id="mobile-controls">
@@ -612,31 +632,35 @@
             </div>
             
             <div id="action-buttons">
+                <div class="action-button" id="jump-button">↑</div>
+                <div class="action-button" id="inventory-button">🎒</div>
                 <div class="action-button" id="break-button">⛏️</div>
                 <div class="action-button" id="place-button">🔨</div>
-                <div class="action-button" id="jump-button">🔼</div>
-                <div class="action-button" id="inventory-button">🎒</div>
             </div>
             
             <!-- Область для управления камерой тапом -->
             <div class="touch-area" id="touch-rotate"></div>
             
             <div id="cursor-lock-info">
-                Нажмите на экран для фиксации курсора<br>
+                НАЖМИТЕ НА ЭКРАН<br>
+                для фиксации курсора и начала игры<br>
+                <br>
                 ESC - освободить курсор
             </div>
+            
+            <button id="fullscreen-button" class="fullscreen-button" style="display: none;">📱 Полный экран</button>
         </div>
         
         <!-- Инвентарь -->
         <div id="inventory">
-            <div class="inventory-title">🎒 Инвентарь</div>
+            <div class="inventory-title">🎒 ИНВЕНТАРЬ</div>
             
             <div class="inventory-grid" id="inventory-grid">
                 <!-- Inventory slots will be generated by JavaScript -->
             </div>
             
             <div style="text-align: center; margin-top: 30px;">
-                <button id="close-inventory" class="close-button">Закрыть инвентарь</button>
+                <button id="close-inventory" class="close-button">ЗАКРЫТЬ ИНВЕНТАРЬ</button>
             </div>
         </div>
         
@@ -645,8 +669,8 @@
     
     <div id="loading">
         <div class="loader"></div>
-        <h2 style="color: #4ecdc4; margin-bottom: 10px;">Генерация плоского мира...</h2>
-        <p>Пожалуйста, подождите</p>
+        <h2 style="color: #4ecdc4; margin-bottom: 10px;">ГЕНЕРАЦИЯ ПЛОСКОГО МИРА</h2>
+        <p>Пожалуйста, подождите...</p>
     </div>
 
     <!-- Three.js библиотека -->
@@ -669,21 +693,21 @@
             y: 5,
             z: 0,
             velocityY: 0,
-            onGround: false,
-            speed: 0.1,
-            runSpeed: 0.15,
-            jumpForce: 0.25,
-            gravity: 0.015,
+            onGround: true,
+            speed: 0.15,
+            jumpForce: 0.35,
+            gravity: 0.02,
             height: 1.8
         };
         
         // Мобильное управление
         let joystickActive = false;
         let joystickX = 0;
-        let joystickY = 0;
+        let joystickZ = 0;
         let joystickStartX = 0;
         let joystickStartY = 0;
         let joystickRadius = 75;
+        let joystickElement = null;
         
         // Управление камерой касанием
         let touchStartX = 0;
@@ -713,7 +737,7 @@
         
         // Инициализация игры
         function init() {
-            console.log("Игра инициализируется...");
+            console.log("Инициализация игры...");
             
             // Создание сцены
             scene = new THREE.Scene();
@@ -723,19 +747,26 @@
             camera.rotation.order = 'YXZ';
             
             // Создание рендерера
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer = new THREE.WebGLRenderer({ 
+                antialias: true,
+                alpha: false,
+                powerPreference: "high-performance"
+            });
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            document.getElementById('game-container').appendChild(renderer.domElement);
+            document.getElementById('game-container').prepend(renderer.domElement);
             
             // Добавление освещения
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
             scene.add(ambientLight);
             
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(100, 100, 50);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
+            directionalLight.position.set(100, 200, 100);
             directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
             scene.add(directionalLight);
             
             // Создание неба
@@ -755,8 +786,10 @@
                 document.getElementById('loading').style.opacity = '0';
                 setTimeout(() => {
                     document.getElementById('loading').style.display = 'none';
-                    showMessage('Плоский мир загружен!', 3000);
-                    showMessage('Нажмите на экран для фиксации курсора', 4000);
+                    showMessage('ПЛОСКИЙ МИР ЗАГРУЖЕН!', 3000);
+                    setTimeout(() => {
+                        showMessage('НАЖМИТЕ НА ЭКРАН ДЛЯ ФИКСАЦИИ КУРСОРА', 4000);
+                    }, 3500);
                 }, 1000);
             }, 1500);
             
@@ -770,24 +803,11 @@
             scene.background = new THREE.Color(0x87CEEB);
             
             // Простое солнце
-            const sunGeometry = new THREE.SphereGeometry(15, 32, 32);
+            const sunGeometry = new THREE.SphereGeometry(20, 32, 32);
             const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFF00 });
             const sun = new THREE.Mesh(sunGeometry, sunMaterial);
-            sun.position.set(200, 150, -200);
+            sun.position.set(300, 200, -300);
             scene.add(sun);
-            
-            // Облака
-            for (let i = 0; i < 8; i++) {
-                const cloudGeometry = new THREE.BoxGeometry(25, 8, 15);
-                const cloudMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
-                const cloud = new THREE.Mesh(cloudGeometry, cloudMaterial);
-                cloud.position.set(
-                    Math.random() * 300 - 150,
-                    90 + Math.random() * 20,
-                    Math.random() * 300 - 150
-                );
-                scene.add(cloud);
-            }
         }
         
         // Генерация плоского мира с деревьями
@@ -795,52 +815,35 @@
             console.log("Генерация плоского мира...");
             
             // Создание большой плоской земли
-            const worldSize = 50;
+            const worldSize = 40;
             
             for (let x = -worldSize; x <= worldSize; x++) {
                 for (let z = -worldSize; z <= worldSize; z++) {
-                    // Определяем биом по расстоянию от центра
-                    const distanceFromCenter = Math.sqrt(x*x + z*z);
+                    // Основание из земли
+                    addBlock(x, -1, z, 1);
                     
-                    if (distanceFromCenter < worldSize * 0.8) {
-                        // Трава в центре
-                        addBlock(x, -1, z, 1); // Земля
-                        addBlock(x, 0, z, 0);  // Трава
-                        
-                        // Случайные цветы и травка
-                        if (Math.random() > 0.9) {
-                            addBlock(x, 1, z, 4); // Листва как трава
-                        }
-                    } else {
-                        // Песок по краям
-                        addBlock(x, -1, z, 1); // Земля
-                        addBlock(x, 0, z, 8);  // Песок
-                    }
+                    // Трава сверху
+                    addBlock(x, 0, z, 0);
                     
-                    // Создаем лес из деревьев
+                    // Случайные деревья
                     if (Math.abs(x) > 5 && Math.abs(z) > 5 && 
-                        distanceFromCenter < worldSize * 0.6 &&
-                        Math.random() > 0.97) {
+                        Math.random() > 0.96) {
                         createTree(x, 1, z);
                     }
                     
                     // Создаем озеро
-                    if (x > -10 && x < 10 && z > -10 && z < 10) {
-                        if (x*x + z*z < 25) {
+                    if (x > -8 && x < 8 && z > -8 && z < 8) {
+                        if (x*x + z*z < 16) {
                             removeBlock(x, 0, z);
-                            addBlock(x, -1, z, 5); // Стекло как вода
+                            addBlock(x, -1, z, 5);
                         }
                     }
                 }
             }
             
             // Создаем несколько домов
-            createHouse(-15, 1, -15);
-            createHouse(15, 1, -15);
-            createHouse(-15, 1, 15);
-            
-            // Создаем гору в центре
-            createMountain(0, 1, 0);
+            createHouse(-12, 1, -12);
+            createHouse(12, 1, -12);
             
             console.log("Плоский мир сгенерирован!");
         }
@@ -855,15 +858,12 @@
             }
             
             // Листва
-            const leafStart = y + trunkHeight - 1;
+            const leafStart = y + trunkHeight - 2;
             for (let dx = -2; dx <= 2; dx++) {
                 for (let dz = -2; dz <= 2; dz++) {
                     for (let dy = 0; dy < 3; dy++) {
-                        // Исключаем углы для красивой формы
-                        if ((dx === -2 || dx === 2) && (dz === -2 || dz === 2) && dy > 0) continue;
-                        
                         const distance = Math.sqrt(dx*dx + dz*dz + dy*dy);
-                        if (distance < 2.5) {
+                        if (distance < 2.3) {
                             addBlock(x + dx, leafStart + dy, z + dz, 4);
                         }
                     }
@@ -897,44 +897,14 @@
                 }
             }
             
-            // Окна
-            addBlock(x + 2, y + 1, z, 5);
-            addBlock(x + 2, y + 2, z, 5);
-            
             // Дверь
-            removeBlock(x + 1, y, z);
-            removeBlock(x + 1, y + 1, z);
+            removeBlock(x + 2, y, z);
+            removeBlock(x + 2, y + 1, z);
             
             // Крыша
             for (let dx = -1; dx < size + 1; dx++) {
                 for (let dz = -1; dz < size + 1; dz++) {
                     addBlock(x + dx, y + 4, z + dz, 7);
-                }
-            }
-        }
-        
-        // Создание горы
-        function createMountain(x, y, z) {
-            const height = 10;
-            const radius = 8;
-            
-            for (let dy = 0; dy < height; dy++) {
-                const layerRadius = radius * (1 - dy / height);
-                for (let dx = -layerRadius; dx <= layerRadius; dx++) {
-                    for (let dz = -layerRadius; dz <= layerRadius; dz++) {
-                        if (dx*dx + dz*dz <= layerRadius*layerRadius) {
-                            addBlock(x + dx, y + dy, z + dz, 2);
-                        }
-                    }
-                }
-            }
-            
-            // Снежная шапка
-            for (let dx = -3; dx <= 3; dx++) {
-                for (let dz = -3; dz <= 3; dz++) {
-                    if (dx*dx + dz*dz <= 9) {
-                        addBlock(x + dx, y + height, z + dz, 5);
-                    }
                 }
             }
         }
@@ -1039,7 +1009,8 @@
                 slot.appendChild(slotNumber);
                 
                 // Обработчик для выбора слота на телефоне
-                slot.addEventListener('click', () => {
+                slot.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     selectHotbarSlot(i);
                 });
                 
@@ -1061,8 +1032,8 @@
                 if (item.typeId !== null) {
                     const blockPreview = document.createElement('div');
                     blockPreview.className = `block-preview ${blockTypes[item.typeId].className}`;
-                    blockPreview.style.width = '50px';
-                    blockPreview.style.height = '50px';
+                    blockPreview.style.width = '60px';
+                    blockPreview.style.height = '60px';
                     slot.appendChild(blockPreview);
                     
                     if (item.count > 1) {
@@ -1072,26 +1043,6 @@
                         slot.appendChild(itemCount);
                     }
                 }
-                
-                // Обработчик для перемещения предметов в инвентаре
-                slot.addEventListener('click', () => {
-                    if (inventoryOpen) {
-                        // Простая логика: при клике на слот в инвентаре, перемещаем предмет в горячую панель
-                        if (item.typeId !== null) {
-                            // Находим первый свободный слот в горячей панели
-                            for (let j = 0; j < 6; j++) {
-                                if (inventory.hotbar[j].typeId === null) {
-                                    inventory.hotbar[j].typeId = item.typeId;
-                                    inventory.hotbar[j].count = item.count;
-                                    inventory.main[i] = { typeId: null, count: 0 };
-                                    updateInventoryUI();
-                                    showMessage(`Предмет перемещен в слот ${j+1}`, 1000);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                });
                 
                 inventoryGrid.appendChild(slot);
             }
@@ -1184,6 +1135,7 @@
         
         // Выбор слота на горячей панели
         function selectHotbarSlot(index) {
+            console.log("Выбор слота:", index);
             hotbarIndex = index;
             
             document.querySelectorAll('.hotbar-slot').forEach((slot, i) => {
@@ -1214,7 +1166,7 @@
         
         // Настройка обработчиков событий
         function setupEventListeners() {
-            console.log("Настройка обработчиков событий для мобильного устройства...");
+            console.log("Настройка обработчиков событий...");
             
             // Изменение размера окна
             window.addEventListener('resize', onWindowResize);
@@ -1222,104 +1174,134 @@
             // Обработка клавиатуры (ESC для разблокировки курсора)
             window.addEventListener('keydown', onKeyDown);
             
-            // Блокировка курсора при клике на экран
-            document.addEventListener('click', lockCursor);
-            
-            // Мобильное управление: джойстик
-            const joystickHandle = document.getElementById('joystick-handle');
-            const joystickBase = document.querySelector('.joystick-base');
-            
-            // События для джойстика
-            joystickHandle.addEventListener('touchstart', startJoystick);
-            joystickBase.addEventListener('touchstart', startJoystick);
-            document.addEventListener('touchmove', moveJoystick);
-            document.addEventListener('touchend', endJoystick);
-            
-            // События для кнопок действий
-            document.getElementById('jump-button').addEventListener('touchstart', () => {
-                if (!inventoryOpen && player.onGround) {
-                    player.velocityY = player.jumpForce;
-                    player.onGround = false;
+            // Фиксация курсора при клике на экран
+            document.addEventListener('click', function(e) {
+                console.log("Клик по документу, цель:", e.target.id);
+                if (!inventoryOpen && e.target.id !== 'hotbar' && 
+                    !e.target.closest('#hotbar') && 
+                    e.target.id !== 'inventory-button' &&
+                    e.target.id !== 'break-button' &&
+                    e.target.id !== 'place-button' &&
+                    e.target.id !== 'jump-button') {
+                    lockCursor();
                 }
             });
             
-            document.getElementById('inventory-button').addEventListener('touchstart', () => {
+            // Полноэкранный режим
+            document.getElementById('fullscreen-button').addEventListener('click', toggleFullscreen);
+            
+            // Мобильное управление: джойстик
+            joystickElement = document.getElementById('joystick-handle');
+            const joystickBase = document.querySelector('.joystick-base');
+            
+            // События для джойстика
+            joystickElement.addEventListener('touchstart', startJoystick, { passive: false });
+            joystickBase.addEventListener('touchstart', startJoystick, { passive: false });
+            document.addEventListener('touchmove', moveJoystick, { passive: false });
+            document.addEventListener('touchend', endJoystick);
+            document.addEventListener('touchcancel', endJoystick);
+            
+            // События для кнопок действий
+            document.getElementById('jump-button').addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!inventoryOpen && isCursorLocked && player.onGround) {
+                    player.velocityY = player.jumpForce;
+                    player.onGround = false;
+                    console.log("Прыжок!");
+                }
+            });
+            
+            document.getElementById('inventory-button').addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log("Кнопка инвентаря нажата");
                 toggleInventory();
             });
             
-            document.getElementById('break-button').addEventListener('touchstart', () => {
+            document.getElementById('break-button').addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
                 if (!inventoryOpen && isCursorLocked) {
+                    console.log("Ломание блока");
                     breakBlock();
                 }
             });
             
-            document.getElementById('place-button').addEventListener('touchstart', () => {
+            document.getElementById('place-button').addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
                 if (!inventoryOpen && isCursorLocked) {
+                    console.log("Установка блока");
                     placeBlock();
                 }
             });
             
             // Кнопка закрытия инвентаря
-            document.getElementById('close-inventory').addEventListener('click', () => {
+            document.getElementById('close-inventory').addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log("Закрытие инвентаря");
                 toggleInventory();
             });
             
             // Управление камерой касанием
             const touchRotateArea = document.getElementById('touch-rotate');
-            touchRotateArea.addEventListener('touchstart', startCameraRotate);
-            document.addEventListener('touchmove', moveCameraRotate);
+            touchRotateArea.addEventListener('touchstart', startCameraRotate, { passive: false });
+            document.addEventListener('touchmove', moveCameraRotate, { passive: false });
             document.addEventListener('touchend', endCameraRotate);
             
-            // Предотвращение стандартного поведения касаний
-            document.addEventListener('touchmove', function(e) {
-                if (joystickActive || isRotating) {
-                    e.preventDefault();
-                }
-            }, { passive: false });
+            // Предотвращаем контекстное меню
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            });
             
-            // Скрываем информацию о курсоре через 10 секунд
+            // Скрываем информацию о курсоре через 15 секунд
             setTimeout(() => {
-                document.getElementById('cursor-lock-info').style.display = 'none';
-            }, 10000);
+                const info = document.getElementById('cursor-lock-info');
+                if (info) info.style.display = 'none';
+            }, 15000);
+            
+            // Показываем кнопку полноэкранного режима
+            setTimeout(() => {
+                document.getElementById('fullscreen-button').style.display = 'block';
+            }, 5000);
         }
         
         // Блокировка курсора
         function lockCursor() {
             if (!isCursorLocked && !inventoryOpen) {
-                console.log("Курсор заблокирован");
+                console.log("Фиксация курсора!");
                 isCursorLocked = true;
                 document.getElementById('crosshair').style.display = 'block';
                 document.getElementById('cursor-lock-info').style.display = 'none';
+                document.getElementById('fullscreen-button').style.display = 'block';
                 
-                // На мобильных устройствах запрашиваем полноэкранный режим
-                if (document.documentElement.requestFullscreen) {
-                    document.documentElement.requestFullscreen();
-                } else if (document.documentElement.webkitRequestFullscreen) {
-                    document.documentElement.webkitRequestFullscreen();
-                }
+                showMessage('КУРСОР ЗАФИКСИРОВАН', 2000);
             }
         }
         
         // Разблокировка курсора
         function unlockCursor() {
-            console.log("Курсор разблокирован");
+            console.log("Разблокировка курсора");
             isCursorLocked = false;
             document.getElementById('crosshair').style.display = 'none';
             document.getElementById('cursor-lock-info').style.display = 'block';
             
-            // Выход из полноэкранного режима
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            }
+            showMessage('КУРСОР ОСВОБОЖДЕН', 2000);
         }
         
         // Обработка клавиатуры
         function onKeyDown(event) {
             // ESC для разблокировки курсора
             if (event.key === 'Escape') {
-                unlockCursor();
+                if (inventoryOpen) {
+                    toggleInventory();
+                } else {
+                    unlockCursor();
+                }
+                event.preventDefault();
             }
             
             // Цифры для выбора слотов
@@ -1330,7 +1312,7 @@
         
         // Джойстик: начало касания
         function startJoystick(e) {
-            if (inventoryOpen) return;
+            if (inventoryOpen || !isCursorLocked) return;
             
             const touch = e.touches[0];
             const rect = document.getElementById('movement-joystick').getBoundingClientRect();
@@ -1345,7 +1327,7 @@
         
         // Джойстик: перемещение
         function moveJoystick(e) {
-            if (!joystickActive || inventoryOpen) return;
+            if (!joystickActive || inventoryOpen || !isCursorLocked) return;
             
             const touch = e.touches[0];
             updateJoystick(touch.clientX, touch.clientY);
@@ -1362,20 +1344,17 @@
             const angle = Math.atan2(dy, dx);
             
             const limitedDistance = Math.min(distance, joystickRadius);
-            joystickX = Math.cos(angle) * limitedDistance;
-            joystickY = Math.sin(angle) * limitedDistance;
+            const handleX = Math.cos(angle) * limitedDistance;
+            const handleY = Math.sin(angle) * limitedDistance;
             
             // Обновляем позицию ручки джойстика
-            const joystickHandle = document.getElementById('joystick-handle');
-            joystickHandle.style.transform = `translate(${joystickX}px, ${joystickY}px)`;
+            joystickElement.style.transform = `translate(${handleX}px, ${handleY}px)`;
             
             // Нормализуем значения для движения
-            const moveX = joystickX / joystickRadius;
-            const moveZ = -joystickY / joystickRadius; // Отрицательный для правильного направления
+            joystickX = handleX / joystickRadius;
+            joystickZ = -handleY / joystickRadius; // Отрицательный для правильного направления
             
-            // Сохраняем для использования в игровом цикле
-            joystickX = moveX;
-            joystickY = moveZ;
+            console.log("Джойстик:", joystickX.toFixed(2), joystickZ.toFixed(2));
         }
         
         // Джойстик: конец касания
@@ -1384,11 +1363,10 @@
             
             joystickActive = false;
             joystickX = 0;
-            joystickY = 0;
+            joystickZ = 0;
             
             // Возвращаем ручку джойстика в центр
-            const joystickHandle = document.getElementById('joystick-handle');
-            joystickHandle.style.transform = 'translate(-50%, -50%)';
+            joystickElement.style.transform = 'translate(-50%, -50%)';
         }
         
         // Управление камерой: начало вращения
@@ -1403,6 +1381,8 @@
             // Сохраняем текущие вращения камеры
             cameraRotationX = camera.rotation.x;
             cameraRotationY = camera.rotation.y;
+            
+            e.preventDefault();
         }
         
         // Управление камерой: вращение
@@ -1419,6 +1399,8 @@
             
             // Ограничиваем вертикальное вращение
             camera.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, camera.rotation.x));
+            
+            e.preventDefault();
         }
         
         // Управление камерой: конец вращения
@@ -1442,13 +1424,13 @@
                 document.getElementById('block-distance').textContent = `Дистанция: ${selectedBlockDistance} блоков`;
                 
                 if (distance > MAX_DISTANCE) {
-                    showMessage('Слишком далеко!', 1000);
+                    showMessage('СЛИШКОМ ДАЛЕКО!', 1000);
                     return;
                 }
                 
                 const block = intersect.object;
                 if (removeBlock(block.position.x, block.position.y, block.position.z)) {
-                    showMessage('Блок добавлен в инвентарь!', 1000);
+                    showMessage('БЛОК ДОБАВЛЕН В ИНВЕНТАРЬ!', 1000);
                 }
             }
         }
@@ -1469,7 +1451,7 @@
                 document.getElementById('block-distance').textContent = `Дистанция: ${selectedBlockDistance} блоков`;
                 
                 if (distance > MAX_DISTANCE) {
-                    showMessage('Слишком далеко!', 1000);
+                    showMessage('СЛИШКОМ ДАЛЕКО!', 1000);
                     return;
                 }
                 
@@ -1494,17 +1476,20 @@
                             selectedItem.typeId = null;
                         }
                         updateInventoryUI();
+                        showMessage('БЛОК УСТАНОВЛЕН!', 1000);
                     } else {
-                        showMessage('Нельзя поставить блок внутри себя!', 1000);
+                        showMessage('НЕЛЬЗЯ ПОСТАВИТЬ БЛОК ВНУТРИ СЕБЯ!', 1000);
                     }
                 } else {
-                    showMessage('Нет блоков для установки!', 1000);
+                    showMessage('НЕТ БЛОКОВ ДЛЯ УСТАНОВКИ!', 1000);
                 }
             }
         }
         
         // Переключение инвентаря
         function toggleInventory() {
+            console.log("toggleInventory вызван. Текущее состояние:", inventoryOpen);
+            
             inventoryOpen = !inventoryOpen;
             const inventoryElement = document.getElementById('inventory');
             
@@ -1516,6 +1501,31 @@
                 console.log("Закрытие инвентаря");
                 inventoryElement.style.display = 'none';
                 lockCursor();
+            }
+        }
+        
+        // Полноэкранный режим
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen();
+                } else if (document.documentElement.mozRequestFullScreen) {
+                    document.documentElement.mozRequestFullScreen();
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen();
+                } else if (document.documentElement.msRequestFullscreen) {
+                    document.documentElement.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
             }
         }
         
@@ -1531,7 +1541,7 @@
             if (inventoryOpen || !isCursorLocked) return;
             
             // Движение с помощью джойстика
-            if (joystickActive) {
+            if (joystickActive && (Math.abs(joystickX) > 0.1 || Math.abs(joystickZ) > 0.1)) {
                 const moveSpeed = player.speed;
                 
                 // Получаем направление взгляда камеры
@@ -1547,23 +1557,27 @@
                 
                 // Вычисляем вектор движения на основе джойстика
                 const moveX = joystickX;
-                const moveZ = joystickY;
+                const moveZ = joystickZ;
                 
                 // Применяем движение
                 player.x += (direction.x * moveZ + right.x * moveX) * moveSpeed;
                 player.z += (direction.z * moveZ + right.z * moveX) * moveSpeed;
+                
+                console.log("Движение игрока:", player.x.toFixed(2), player.z.toFixed(2));
                 
                 // Проверяем столкновения с блоками
                 checkCollisions();
             }
             
             // Физика прыжка и гравитации
-            // Гравитация
             player.velocityY -= player.gravity;
             player.y += player.velocityY;
             
             // Проверка земли
             checkGroundCollision();
+            
+            // Обновление состояния игрока
+            document.getElementById('player-state').textContent = player.onGround ? 'На земле' : 'В воздухе';
             
             // Обновление позиции камеры
             camera.position.set(player.x, player.y + 1.7, player.z);
