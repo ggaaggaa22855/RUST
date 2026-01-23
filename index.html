@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minecraft First-Person</title>
+    <title>Mobile Minecraft</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            touch-action: none;
         }
         
         body {
@@ -17,13 +18,16 @@
             color: #fff;
             overflow: hidden;
             height: 100vh;
+            width: 100vw;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
         
         #game-container {
             position: relative;
             width: 100%;
             height: 100vh;
+            overflow: hidden;
         }
         
         #crosshair {
@@ -66,9 +70,105 @@
             z-index: 50;
         }
         
-        #hotbar {
+        #mobile-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 60;
+            pointer-events: auto;
+        }
+        
+        #movement-joystick {
+            width: 150px;
+            height: 150px;
+            position: relative;
+        }
+        
+        .joystick-base {
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            position: absolute;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .joystick-handle {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid rgba(0, 0, 0, 0.5);
+        }
+        
+        #action-buttons {
             position: absolute;
             bottom: 30px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 60;
+            pointer-events: auto;
+        }
+        
+        .action-button {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.7);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.1s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+        
+        .action-button:active {
+            transform: scale(0.9);
+            background: rgba(0, 0, 0, 0.9);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+        
+        #jump-button {
+            background: rgba(30, 144, 255, 0.7);
+            border-color: rgba(135, 206, 250, 0.5);
+        }
+        
+        #inventory-button {
+            background: rgba(50, 205, 50, 0.7);
+            border-color: rgba(144, 238, 144, 0.5);
+        }
+        
+        #break-button {
+            background: rgba(220, 20, 60, 0.7);
+            border-color: rgba(255, 99, 71, 0.5);
+            width: 80px;
+            height: 80px;
+            font-size: 28px;
+        }
+        
+        #place-button {
+            background: rgba(30, 144, 255, 0.7);
+            border-color: rgba(135, 206, 250, 0.5);
+            width: 80px;
+            height: 80px;
+            font-size: 28px;
+        }
+        
+        #hotbar {
+            position: absolute;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
@@ -77,11 +177,13 @@
             padding: 10px;
             border-radius: 12px;
             border: 2px solid rgba(255, 255, 255, 0.3);
+            z-index: 55;
+            pointer-events: auto;
         }
         
         .hotbar-slot {
-            width: 60px;
-            height: 60px;
+            width: 55px;
+            height: 55px;
             background-color: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255, 255, 255, 0.2);
             border-radius: 8px;
@@ -99,21 +201,21 @@
         }
         
         .hotbar-slot .block-preview {
-            width: 48px;
-            height: 48px;
+            width: 40px;
+            height: 40px;
             border-radius: 4px;
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
         
         .slot-number {
             position: absolute;
-            top: 3px;
-            right: 3px;
+            top: 2px;
+            right: 2px;
             background-color: rgba(0, 0, 0, 0.7);
             color: white;
-            font-size: 12px;
-            width: 18px;
-            height: 18px;
+            font-size: 11px;
+            width: 16px;
+            height: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -123,42 +225,41 @@
         
         .item-count {
             position: absolute;
-            bottom: 3px;
-            right: 3px;
+            bottom: 2px;
+            right: 2px;
             background-color: rgba(0, 0, 0, 0.7);
             color: white;
-            font-size: 12px;
-            min-width: 18px;
-            height: 18px;
+            font-size: 11px;
+            min-width: 16px;
+            height: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 4px;
             font-weight: bold;
-            padding: 0 4px;
+            padding: 0 3px;
         }
         
         #inventory {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background-color: rgba(0, 0, 0, 0.95);
-            padding: 25px;
-            border-radius: 15px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            padding: 20px;
+            border-radius: 0;
             display: none;
             z-index: 200;
             pointer-events: all;
-            width: 650px;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+            overflow-y: auto;
         }
         
         .inventory-grid {
             display: grid;
-            grid-template-columns: repeat(9, 1fr);
-            gap: 8px;
-            margin-bottom: 25px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
         }
         
         .inventory-title {
@@ -170,47 +271,12 @@
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
         }
         
-        #crafting {
-            background-color: rgba(40, 40, 60, 0.9);
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 25px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .crafting-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            width: 135px;
-            margin: 15px auto;
-        }
-        
-        .crafting-result {
-            margin-left: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        #crafting-result-slot {
-            width: 70px;
-            height: 70px;
-            background-color: rgba(255, 255, 255, 0.15);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 15px;
-        }
-        
-        .inventory-slot, .crafting-slot {
-            width: 55px;
-            height: 55px;
+        .inventory-slot {
+            width: 100%;
+            height: 80px;
             background-color: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -219,71 +285,21 @@
             transition: all 0.2s;
         }
         
-        .inventory-slot:hover, .crafting-slot:hover {
+        .inventory-slot:hover {
             background-color: rgba(255, 255, 255, 0.2);
             border-color: rgba(255, 255, 255, 0.4);
         }
         
-        #info-panel {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 10px;
-            max-width: 350px;
-            pointer-events: all;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        #controls-panel {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 10px;
-            pointer-events: all;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .panel-title {
-            color: #4ecdc4;
-            font-weight: bold;
-            margin-bottom: 10px;
-            font-size: 18px;
-        }
-        
-        .instruction {
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-        }
-        
-        .key {
-            display: inline-block;
-            padding: 3px 10px;
-            background-color: #444;
-            border-radius: 4px;
-            font-family: monospace;
-            border: 1px solid #666;
-            min-width: 35px;
-            text-align: center;
-            font-size: 13px;
-            font-weight: bold;
-        }
-        
         #stats {
             position: absolute;
-            bottom: 120px;
+            top: 20px;
             left: 20px;
             background-color: rgba(0, 0, 0, 0.7);
             padding: 15px;
             border-radius: 10px;
             pointer-events: all;
             border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 200px;
         }
         
         .stat {
@@ -298,20 +314,19 @@
         
         #block-preview {
             position: absolute;
-            top: 50%;
-            right: 30px;
-            transform: translateY(-50%);
+            top: 20px;
+            right: 20px;
             background-color: rgba(0, 0, 0, 0.7);
             padding: 15px;
             border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             text-align: center;
-            min-width: 150px;
+            max-width: 150px;
         }
         
         #selected-block {
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
             margin: 0 auto 10px;
             border-radius: 8px;
             border: 2px solid rgba(255, 255, 255, 0.3);
@@ -320,7 +335,7 @@
         #selected-block-name {
             font-weight: bold;
             color: #4ecdc4;
-            font-size: 16px;
+            font-size: 14px;
         }
         
         #loading {
@@ -361,13 +376,7 @@
         .glass { background-color: rgba(173, 216, 230, 0.7); }
         .brick { background-color: #B22222; }
         .planks { background-color: #DEB887; }
-        .stick { 
-            background: linear-gradient(135deg, #8B7355 0%, #8B7355 50%, #DEB887 50%, #DEB887 100%);
-        }
-        .crafting-table { 
-            background: linear-gradient(45deg, #8B7355 25%, #DEB887 25%, #DEB887 50%, #8B7355 50%, #8B7355 75%, #DEB887 75%, #DEB887 100%);
-            background-size: 20px 20px;
-        }
+        .sand { background-color: #F4A460; }
         
         #message {
             position: absolute;
@@ -375,17 +384,17 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background-color: rgba(0, 0, 0, 0.9);
-            padding: 25px 50px;
+            padding: 20px 30px;
             border-radius: 12px;
             text-align: center;
-            font-size: 26px;
+            font-size: 22px;
             color: #4ecdc4;
             z-index: 150;
             opacity: 0;
             transition: opacity 0.5s;
             pointer-events: none;
             border: 2px solid rgba(78, 205, 196, 0.5);
-            box-shadow: 0 0 30px rgba(78, 205, 196, 0.3);
+            max-width: 90%;
         }
         
         #health-bar {
@@ -393,10 +402,10 @@
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            width: 220px;
-            height: 35px;
+            width: 200px;
+            height: 30px;
             background-color: rgba(0, 0, 0, 0.7);
-            border-radius: 18px;
+            border-radius: 15px;
             border: 2px solid rgba(255, 255, 255, 0.3);
             overflow: hidden;
         }
@@ -419,25 +428,25 @@
             justify-content: center;
             font-weight: bold;
             color: white;
-            font-size: 16px;
+            font-size: 14px;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
         }
         
         #block-distance {
             position: absolute;
-            top: 70px;
+            top: 60px;
             left: 50%;
             transform: translateX(-50%);
             background-color: rgba(0, 0, 0, 0.7);
-            padding: 10px 20px;
+            padding: 8px 15px;
             border-radius: 10px;
-            font-size: 15px;
+            font-size: 14px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             font-weight: bold;
         }
         
-        .craft-button {
-            padding: 10px 20px;
+        .close-button {
+            padding: 12px 30px;
             background: linear-gradient(135deg, #4a4a6d, #3a3a5d);
             color: white;
             border: none;
@@ -445,63 +454,121 @@
             cursor: pointer;
             font-weight: bold;
             transition: all 0.3s;
-            margin-top: 10px;
-            font-size: 16px;
+            margin-top: 20px;
+            font-size: 18px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 300px;
         }
         
-        .craft-button:hover {
-            background: linear-gradient(135deg, #5a5a8d, #4a4a7d);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
-        }
-        
-        .craft-button:active {
-            transform: translateY(0);
+        .close-button:active {
+            transform: translateY(2px);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
         
-        .craft-button:disabled {
-            background: #333;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .close-button {
-            padding: 10px 30px;
-            background: linear-gradient(135deg, #4a4a6d, #3a3a5d);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-            margin-top: 10px;
-            font-size: 16px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        }
-        
-        .close-button:hover {
-            background: linear-gradient(135deg, #5a5a8d, #4a4a7d);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
-        }
-        
-        .crafting-title {
-            color: #ffcc00;
-            font-weight: bold;
-            margin-bottom: 15px;
-            font-size: 20px;
+        #cursor-lock-info {
+            position: absolute;
+            bottom: 200px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
             text-align: center;
+            font-size: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            max-width: 90%;
         }
         
-        .recipe {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            font-size: 14px;
+        .touch-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 70%;
+            z-index: 40;
+            pointer-events: auto;
+        }
+        
+        #touch-rotate {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 70%;
+            z-index: 40;
+        }
+        
+        @media (max-width: 768px) {
+            .hotbar-slot {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .hotbar-slot .block-preview {
+                width: 35px;
+                height: 35px;
+            }
+            
+            #movement-joystick {
+                width: 130px;
+                height: 130px;
+            }
+            
+            .joystick-handle {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .action-button {
+                width: 60px;
+                height: 60px;
+                font-size: 20px;
+            }
+            
+            #break-button, #place-button {
+                width: 70px;
+                height: 70px;
+                font-size: 24px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .hotbar-slot {
+                width: 45px;
+                height: 45px;
+            }
+            
+            .hotbar-slot .block-preview {
+                width: 30px;
+                height: 30px;
+            }
+            
+            #movement-joystick {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .joystick-handle {
+                width: 45px;
+                height: 45px;
+            }
+            
+            .action-button {
+                width: 55px;
+                height: 55px;
+                font-size: 18px;
+            }
+            
+            #break-button, #place-button {
+                width: 65px;
+                height: 65px;
+                font-size: 22px;
+            }
+            
+            .inventory-slot {
+                height: 70px;
+            }
         }
     </style>
 </head>
@@ -524,94 +591,52 @@
                 <!-- Hotbar slots will be generated by JavaScript -->
             </div>
             
+            <div id="stats">
+                <div class="stat">Блоков: <span class="stat-value" id="inventory-count">0</span></div>
+                <div class="stat">X: <span class="stat-value" id="coord-x">0</span></div>
+                <div class="stat">Y: <span class="stat-value" id="coord-y">5</span></div>
+                <div class="stat">Z: <span class="stat-value" id="coord-z">0</span></div>
+            </div>
+            
             <div id="block-preview">
                 <div id="selected-block" class="block-preview grass"></div>
                 <div id="selected-block-name">Трава</div>
-                <div id="selected-block-count" style="color: white; margin-top: 5px;">x0</div>
+                <div id="selected-block-count" style="color: white; font-size: 12px;">x0</div>
             </div>
             
-            <div id="stats">
-                <div class="panel-title">Статистика</div>
-                <div class="stat">Блоков в инвентаре: <span class="stat-value" id="inventory-count">0</span></div>
-                <div class="stat">Координаты: <span class="stat-value" id="coordinates">X: 0, Y: 5, Z: 0</span></div>
-                <div class="stat">Направление: <span class="stat-value" id="looking-at">Север</span></div>
-                <div class="stat">Режим: <span class="stat-value" id="movement-mode">Ходьба</span></div>
+            <div id="mobile-controls">
+                <div id="movement-joystick">
+                    <div class="joystick-base"></div>
+                    <div class="joystick-handle" id="joystick-handle"></div>
+                </div>
             </div>
             
-            <div id="info-panel">
-                <div class="panel-title">Minecraft First-Person</div>
-                <div>Нажмите <span style="color: #ffcc00; font-weight: bold;">E</span> чтобы открыть инвентарь и крафт</div>
-                <div style="margin-top: 10px; font-size: 14px; color: #ffcc00;">Используйте WASD для движения!</div>
+            <div id="action-buttons">
+                <div class="action-button" id="break-button">⛏️</div>
+                <div class="action-button" id="place-button">🔨</div>
+                <div class="action-button" id="jump-button">🔼</div>
+                <div class="action-button" id="inventory-button">🎒</div>
             </div>
             
-            <div id="controls-panel">
-                <div class="panel-title">Управление</div>
-                <div class="instruction">
-                    <span class="key">WASD</span> <span>Движение</span>
-                </div>
-                <div class="instruction">
-                    <span class="key">ЛКМ</span> <span>Ломать блок</span>
-                </div>
-                <div class="instruction">
-                    <span class="key">ПКМ</span> <span>Ставить блок</span>
-                </div>
-                <div class="instruction">
-                    <span class="key">Пробел</span> <span>Прыжок</span>
-                </div>
-                <div class="instruction">
-                    <span class="key">Shift</span> <span>Бег</span>
-                </div>
-                <div class="instruction">
-                    <span class="key">E</span> <span>Инвентарь</span>
-                </div>
-                <div class="instruction">
-                    <span class="key">F</span> <span>Полёт/Ходьба</span>
-                </div>
-                <div class="instruction">
-                    <span class="key">1-9</span> <span>Выбор блока</span>
-                </div>
+            <!-- Область для управления камерой тапом -->
+            <div class="touch-area" id="touch-rotate"></div>
+            
+            <div id="cursor-lock-info">
+                Нажмите на экран для фиксации курсора<br>
+                ESC - освободить курсор
             </div>
         </div>
         
-        <!-- Инвентарь и крафт -->
+        <!-- Инвентарь -->
         <div id="inventory">
-            <div class="inventory-title">🎒 Инвентарь и Крафт 🛠️</div>
+            <div class="inventory-title">🎒 Инвентарь</div>
             
-            <div style="display: flex; justify-content: space-between; gap: 40px;">
-                <div style="flex: 1;">
-                    <div style="margin-bottom: 15px; color: #4ecdc4; font-size: 20px; font-weight: bold;">Инвентарь</div>
-                    <div class="inventory-grid" id="inventory-grid">
-                        <!-- Inventory slots will be generated by JavaScript -->
-                    </div>
-                </div>
-                
-                <div style="flex: 1;">
-                    <div style="margin-bottom: 15px; color: #ffcc00; font-size: 20px; font-weight: bold;">Крафтинг</div>
-                    <div style="display: flex; align-items: center; justify-content: center;">
-                        <div>
-                            <div class="crafting-grid" id="crafting-grid">
-                                <!-- Crafting slots will be generated by JavaScript -->
-                            </div>
-                        </div>
-                        
-                        <div class="crafting-result">
-                            <div style="font-size: 30px; margin: 0 20px;">→</div>
-                            <div id="crafting-result-slot" class="inventory-slot"></div>
-                            <div id="crafting-result-name" style="font-size: 16px; margin-bottom: 10px;"></div>
-                            <button id="craft-button" class="craft-button" disabled>Скрафтить</button>
-                        </div>
-                    </div>
-                    
-                    <div id="crafting" style="margin-top: 25px;">
-                        <div class="crafting-title">📜 Рецепты крафта:</div>
-                        <div class="recipe">• 4 доски = верстак</div>
-                        <div class="recipe">• 2 палки = 4 палки (увеличение)</div>
-                    </div>
-                </div>
+            <div class="inventory-grid" id="inventory-grid">
+                <!-- Inventory slots will be generated by JavaScript -->
             </div>
             
             <div style="text-align: center; margin-top: 30px;">
-                <button id="close-inventory" class="close-button">Закрыть инвентарь (E)</button>
+                <button id="close-inventory" class="close-button">Закрыть инвентарь</button>
             </div>
         </div>
         
@@ -620,7 +645,7 @@
     
     <div id="loading">
         <div class="loader"></div>
-        <h2 style="color: #4ecdc4; margin-bottom: 10px;">Генерация мира...</h2>
+        <h2 style="color: #4ecdc4; margin-bottom: 10px;">Генерация плоского мира...</h2>
         <p>Пожалуйста, подождите</p>
     </div>
 
@@ -636,29 +661,38 @@
         let health = 100;
         let inventoryOpen = false;
         let selectedBlockDistance = 0;
+        let isCursorLocked = false;
         
-        // Параметры игрока - УПРОЩЕННЫЕ!
+        // Параметры игрока
         let player = {
             x: 0,
             y: 5,
             z: 0,
             velocityY: 0,
             onGround: false,
-            speed: 0.12,
-            runSpeed: 0.2,
-            jumpForce: 0.35,
-            gravity: 0.02,
-            height: 1.8,
-            isRunning: false,
-            isCrouching: false
+            speed: 0.1,
+            runSpeed: 0.15,
+            jumpForce: 0.25,
+            gravity: 0.015,
+            height: 1.8
         };
         
-        // Управление
-        const keys = {};
-        let mouse = { x: 0, y: 0 };
-        let isMouseLocked = false;
+        // Мобильное управление
+        let joystickActive = false;
+        let joystickX = 0;
+        let joystickY = 0;
+        let joystickStartX = 0;
+        let joystickStartY = 0;
+        let joystickRadius = 75;
         
-        // Настройки блоков
+        // Управление камерой касанием
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let cameraRotationX = 0;
+        let cameraRotationY = 0;
+        let isRotating = false;
+        
+        // Настройки блоков для плоского мира
         const blockTypes = [
             { id: 0, name: 'Трава', color: 0x7CFC00, className: 'grass', stack: 64, drops: 0 },
             { id: 1, name: 'Земля', color: 0x8B4513, className: 'dirt', stack: 64, drops: 1 },
@@ -668,36 +702,14 @@
             { id: 5, name: 'Стекло', color: 0xADD8E6, className: 'glass', stack: 64, drops: null },
             { id: 6, name: 'Кирпич', color: 0xB22222, className: 'brick', stack: 64, drops: 6 },
             { id: 7, name: 'Доски', color: 0xDEB887, className: 'planks', stack: 64, drops: 7 },
-            { id: 8, name: 'Палка', color: 0x8B7355, className: 'stick', stack: 64, craftable: true },
-            { id: 9, name: 'Верстак', color: 0x8B7355, className: 'crafting-table', stack: 64, craftable: true }
+            { id: 8, name: 'Песок', color: 0xF4A460, className: 'sand', stack: 64, drops: 8 }
         ];
         
         // Инвентарь игрока
         let inventory = {
-            hotbar: Array(9).fill().map(() => ({ typeId: null, count: 0 })),
-            main: Array(27).fill().map(() => ({ typeId: null, count: 0 }))
+            hotbar: Array(6).fill().map(() => ({ typeId: null, count: 0 })),
+            main: Array(24).fill().map(() => ({ typeId: null, count: 0 }))
         };
-        
-        // Слоты крафта
-        let craftingSlots = Array(9).fill().map(() => ({ typeId: null, count: 0 }));
-        
-        // Рецепты крафта
-        const craftingRecipes = [
-            {
-                pattern: [
-                    [7, 7],
-                    [7, 7]
-                ],
-                result: { typeId: 9, count: 1 }
-            },
-            {
-                pattern: [
-                    [8],
-                    [8]
-                ],
-                result: { typeId: 8, count: 4 }
-            }
-        ];
         
         // Инициализация игры
         function init() {
@@ -707,7 +719,7 @@
             scene = new THREE.Scene();
             
             // Создание камеры от первого лица
-            camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.rotation.order = 'YXZ';
             
             // Создание рендерера
@@ -729,8 +741,8 @@
             // Создание неба
             createSky();
             
-            // Генерация мира
-            generateWorld();
+            // Генерация плоского мира
+            generateFlatWorld();
             
             // Инициализация инвентаря
             initInventory();
@@ -743,8 +755,8 @@
                 document.getElementById('loading').style.opacity = '0';
                 setTimeout(() => {
                     document.getElementById('loading').style.display = 'none';
-                    showMessage('Добро пожаловать! Используйте WASD для движения', 3000);
-                    lockMouse();
+                    showMessage('Плоский мир загружен!', 3000);
+                    showMessage('Нажмите на экран для фиксации курсора', 4000);
                 }, 1000);
             }, 1500);
             
@@ -756,90 +768,173 @@
         function createSky() {
             // Голубой фон
             scene.background = new THREE.Color(0x87CEEB);
+            
+            // Простое солнце
+            const sunGeometry = new THREE.SphereGeometry(15, 32, 32);
+            const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFF00 });
+            const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+            sun.position.set(200, 150, -200);
+            scene.add(sun);
+            
+            // Облака
+            for (let i = 0; i < 8; i++) {
+                const cloudGeometry = new THREE.BoxGeometry(25, 8, 15);
+                const cloudMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+                const cloud = new THREE.Mesh(cloudGeometry, cloudMaterial);
+                cloud.position.set(
+                    Math.random() * 300 - 150,
+                    90 + Math.random() * 20,
+                    Math.random() * 300 - 150
+                );
+                scene.add(cloud);
+            }
         }
         
-        // Генерация мира
-        function generateWorld() {
-            // Создание земли
-            for (let x = -20; x <= 20; x++) {
-                for (let z = -20; z <= 20; z++) {
-                    // Основание из земли
-                    addBlock(x, -1, z, 1);
+        // Генерация плоского мира с деревьями
+        function generateFlatWorld() {
+            console.log("Генерация плоского мира...");
+            
+            // Создание большой плоской земли
+            const worldSize = 50;
+            
+            for (let x = -worldSize; x <= worldSize; x++) {
+                for (let z = -worldSize; z <= worldSize; z++) {
+                    // Определяем биом по расстоянию от центра
+                    const distanceFromCenter = Math.sqrt(x*x + z*z);
                     
-                    // Трава сверху
-                    addBlock(x, 0, z, 0);
-                    
-                    // Неровности ландшафта
-                    if (Math.random() > 0.7) {
-                        addBlock(x, 1, z, 1);
+                    if (distanceFromCenter < worldSize * 0.8) {
+                        // Трава в центре
+                        addBlock(x, -1, z, 1); // Земля
+                        addBlock(x, 0, z, 0);  // Трава
+                        
+                        // Случайные цветы и травка
+                        if (Math.random() > 0.9) {
+                            addBlock(x, 1, z, 4); // Листва как трава
+                        }
+                    } else {
+                        // Песок по краям
+                        addBlock(x, -1, z, 1); // Земля
+                        addBlock(x, 0, z, 8);  // Песок
                     }
                     
-                    // Случайные деревья
-                    if (Math.abs(x) > 5 && Math.abs(z) > 5 && Math.random() > 0.96) {
+                    // Создаем лес из деревьев
+                    if (Math.abs(x) > 5 && Math.abs(z) > 5 && 
+                        distanceFromCenter < worldSize * 0.6 &&
+                        Math.random() > 0.97) {
                         createTree(x, 1, z);
                     }
-                }
-            }
-            
-            // Создание дома
-            createHouse(-8, 1, -8);
-            
-            // Создание озера
-            for (let x = -5; x <= 5; x++) {
-                for (let z = -5; z <= 5; z++) {
-                    if (x*x + z*z < 16) {
-                        removeBlock(x, 0, z);
-                        addBlock(x, -1, z, 5);
+                    
+                    // Создаем озеро
+                    if (x > -10 && x < 10 && z > -10 && z < 10) {
+                        if (x*x + z*z < 25) {
+                            removeBlock(x, 0, z);
+                            addBlock(x, -1, z, 5); // Стекло как вода
+                        }
                     }
                 }
             }
+            
+            // Создаем несколько домов
+            createHouse(-15, 1, -15);
+            createHouse(15, 1, -15);
+            createHouse(-15, 1, 15);
+            
+            // Создаем гору в центре
+            createMountain(0, 1, 0);
+            
+            console.log("Плоский мир сгенерирован!");
         }
         
         // Создание дерева
         function createTree(x, y, z) {
-            const trunkHeight = 4;
+            const trunkHeight = 4 + Math.floor(Math.random() * 2);
+            
+            // Ствол
             for (let i = 0; i < trunkHeight; i++) {
                 addBlock(x, y + i, z, 3);
             }
             
+            // Листва
             const leafStart = y + trunkHeight - 1;
             for (let dx = -2; dx <= 2; dx++) {
                 for (let dz = -2; dz <= 2; dz++) {
                     for (let dy = 0; dy < 3; dy++) {
+                        // Исключаем углы для красивой формы
+                        if ((dx === -2 || dx === 2) && (dz === -2 || dz === 2) && dy > 0) continue;
+                        
                         const distance = Math.sqrt(dx*dx + dz*dz + dy*dy);
-                        if (distance < 2) {
+                        if (distance < 2.5) {
                             addBlock(x + dx, leafStart + dy, z + dz, 4);
                         }
                     }
                 }
             }
+            
+            // Верхушка
+            addBlock(x, leafStart + 3, z, 4);
         }
         
         // Создание дома
         function createHouse(x, y, z) {
+            const size = 5;
+            
             // Фундамент
-            for (let dx = 0; dx < 5; dx++) {
-                for (let dz = 0; dz < 5; dz++) {
+            for (let dx = 0; dx < size; dx++) {
+                for (let dz = 0; dz < size; dz++) {
                     addBlock(x + dx, y - 1, z + dz, 2);
                 }
             }
             
             // Стены
-            for (let dy = 0; dy < 3; dy++) {
-                for (let dx = 0; dx < 5; dx++) {
+            for (let dy = 0; dy < 4; dy++) {
+                for (let dx = 0; dx < size; dx++) {
                     addBlock(x + dx, y + dy, z, 6);
-                    addBlock(x + dx, y + dy, z + 4, 6);
+                    addBlock(x + dx, y + dy, z + size - 1, 6);
                 }
-                for (let dz = 0; dz < 5; dz++) {
+                for (let dz = 0; dz < size; dz++) {
                     addBlock(x, y + dy, z + dz, 6);
-                    addBlock(x + 4, y + dy, z + dz, 6);
+                    addBlock(x + size - 1, y + dy, z + dz, 6);
                 }
             }
             
+            // Окна
+            addBlock(x + 2, y + 1, z, 5);
+            addBlock(x + 2, y + 2, z, 5);
+            
+            // Дверь
+            removeBlock(x + 1, y, z);
+            removeBlock(x + 1, y + 1, z);
+            
             // Крыша
-            for (let dx = -1; dx < 6; dx++) {
-                for (let dz = -1; dz < 6; dz++) {
-                    addBlock(x + dx, y + 3, z + dz, 7);
+            for (let dx = -1; dx < size + 1; dx++) {
+                for (let dz = -1; dz < size + 1; dz++) {
+                    addBlock(x + dx, y + 4, z + dz, 7);
+                }
+            }
+        }
+        
+        // Создание горы
+        function createMountain(x, y, z) {
+            const height = 10;
+            const radius = 8;
+            
+            for (let dy = 0; dy < height; dy++) {
+                const layerRadius = radius * (1 - dy / height);
+                for (let dx = -layerRadius; dx <= layerRadius; dx++) {
+                    for (let dz = -layerRadius; dz <= layerRadius; dz++) {
+                        if (dx*dx + dz*dz <= layerRadius*layerRadius) {
+                            addBlock(x + dx, y + dy, z + dz, 2);
+                        }
+                    }
+                }
+            }
+            
+            // Снежная шапка
+            for (let dx = -3; dx <= 3; dx++) {
+                for (let dz = -3; dz <= 3; dz++) {
+                    if (dx*dx + dz*dz <= 9) {
+                        addBlock(x + dx, y + height, z + dz, 5);
+                    }
                 }
             }
         }
@@ -900,14 +995,15 @@
         // Инициализация инвентаря
         function initInventory() {
             // Начальные предметы
-            addItemToInventory(7, 32); // Доски
-            addItemToInventory(3, 16); // Дерево
-            addItemToInventory(2, 8);  // Камень
+            addItemToInventory(0, 32); // Трава
+            addItemToInventory(1, 32); // Земля
+            addItemToInventory(2, 16); // Камень
+            addItemToInventory(3, 8);  // Дерево
+            addItemToInventory(7, 16); // Доски
             
             // Создание горячей панели
             createHotbar();
             createInventoryUI();
-            createCraftingUI();
             
             updateSelectedBlock();
         }
@@ -917,7 +1013,7 @@
             const hotbar = document.getElementById('hotbar');
             hotbar.innerHTML = '';
             
-            for (let i = 0; i < 9; i++) {
+            for (let i = 0; i < 6; i++) {
                 const slot = document.createElement('div');
                 slot.className = 'hotbar-slot';
                 slot.dataset.index = i;
@@ -942,6 +1038,11 @@
                 slotNumber.textContent = i + 1;
                 slot.appendChild(slotNumber);
                 
+                // Обработчик для выбора слота на телефоне
+                slot.addEventListener('click', () => {
+                    selectHotbarSlot(i);
+                });
+                
                 hotbar.appendChild(slot);
             }
         }
@@ -951,7 +1052,7 @@
             const inventoryGrid = document.getElementById('inventory-grid');
             inventoryGrid.innerHTML = '';
             
-            for (let i = 0; i < 27; i++) {
+            for (let i = 0; i < 24; i++) {
                 const slot = document.createElement('div');
                 slot.className = 'inventory-slot';
                 slot.dataset.index = i;
@@ -960,8 +1061,8 @@
                 if (item.typeId !== null) {
                     const blockPreview = document.createElement('div');
                     blockPreview.className = `block-preview ${blockTypes[item.typeId].className}`;
-                    blockPreview.style.width = '40px';
-                    blockPreview.style.height = '40px';
+                    blockPreview.style.width = '50px';
+                    blockPreview.style.height = '50px';
                     slot.appendChild(blockPreview);
                     
                     if (item.count > 1) {
@@ -971,6 +1072,26 @@
                         slot.appendChild(itemCount);
                     }
                 }
+                
+                // Обработчик для перемещения предметов в инвентаре
+                slot.addEventListener('click', () => {
+                    if (inventoryOpen) {
+                        // Простая логика: при клике на слот в инвентаре, перемещаем предмет в горячую панель
+                        if (item.typeId !== null) {
+                            // Находим первый свободный слот в горячей панели
+                            for (let j = 0; j < 6; j++) {
+                                if (inventory.hotbar[j].typeId === null) {
+                                    inventory.hotbar[j].typeId = item.typeId;
+                                    inventory.hotbar[j].count = item.count;
+                                    inventory.main[i] = { typeId: null, count: 0 };
+                                    updateInventoryUI();
+                                    showMessage(`Предмет перемещен в слот ${j+1}`, 1000);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                });
                 
                 inventoryGrid.appendChild(slot);
             }
@@ -978,43 +1099,10 @@
             updateInventoryCount();
         }
         
-        // Создание UI крафта
-        function createCraftingUI() {
-            const craftingGrid = document.getElementById('crafting-grid');
-            craftingGrid.innerHTML = '';
-            
-            for (let i = 0; i < 9; i++) {
-                const slot = document.createElement('div');
-                slot.className = 'crafting-slot';
-                slot.dataset.index = i;
-                
-                const item = craftingSlots[i];
-                if (item.typeId !== null) {
-                    const blockPreview = document.createElement('div');
-                    blockPreview.className = `block-preview ${blockTypes[item.typeId].className}`;
-                    blockPreview.style.width = '35px';
-                    blockPreview.style.height = '35px';
-                    slot.appendChild(blockPreview);
-                    
-                    if (item.count > 1) {
-                        const itemCount = document.createElement('div');
-                        itemCount.className = 'item-count';
-                        itemCount.style.fontSize = '10px';
-                        itemCount.textContent = item.count;
-                        slot.appendChild(itemCount);
-                    }
-                }
-                
-                craftingGrid.appendChild(slot);
-            }
-            
-            updateCraftingResult();
-        }
-        
         // Добавление предмета в инвентарь
         function addItemToInventory(typeId, count) {
             // Сначала пытаемся добавить в горячую панель
-            for (let i = 0; i < 9; i++) {
+            for (let i = 0; i < 6; i++) {
                 if (inventory.hotbar[i].typeId === typeId && inventory.hotbar[i].count < blockTypes[typeId].stack) {
                     const availableSpace = blockTypes[typeId].stack - inventory.hotbar[i].count;
                     const toAdd = Math.min(count, availableSpace);
@@ -1029,7 +1117,7 @@
             }
             
             // Затем в основной инвентарь
-            for (let i = 0; i < 27; i++) {
+            for (let i = 0; i < 24; i++) {
                 if (inventory.main[i].typeId === typeId && inventory.main[i].count < blockTypes[typeId].stack) {
                     const availableSpace = blockTypes[typeId].stack - inventory.main[i].count;
                     const toAdd = Math.min(count, availableSpace);
@@ -1044,7 +1132,7 @@
             }
             
             // Ищем пустые слоты
-            for (let i = 0; i < 9; i++) {
+            for (let i = 0; i < 6; i++) {
                 if (inventory.hotbar[i].typeId === null) {
                     inventory.hotbar[i].typeId = typeId;
                     inventory.hotbar[i].count = Math.min(count, blockTypes[typeId].stack);
@@ -1057,7 +1145,7 @@
                 }
             }
             
-            for (let i = 0; i < 27; i++) {
+            for (let i = 0; i < 24; i++) {
                 if (inventory.main[i].typeId === null) {
                     inventory.main[i].typeId = typeId;
                     inventory.main[i].count = Math.min(count, blockTypes[typeId].stack);
@@ -1124,153 +1212,222 @@
             }
         }
         
-        // Обновление результата крафта
-        function updateCraftingResult() {
-            // Проверяем рецепты крафта
-            let matchedRecipe = null;
-            
-            for (const recipe of craftingRecipes) {
-                const pattern = recipe.pattern;
-                const patternWidth = pattern[0].length;
-                const patternHeight = pattern.length;
-                
-                let match = true;
-                
-                // Проверяем сетку 3x3
-                for (let y = 0; y < 3; y++) {
-                    for (let x = 0; x < 3; x++) {
-                        const craftingIndex = y * 3 + x;
-                        const slot = craftingSlots[craftingIndex];
-                        
-                        // Определяем, что должно быть в этой позиции по рецепту
-                        let expectedTypeId = null;
-                        if (y < patternHeight && x < patternWidth) {
-                            expectedTypeId = pattern[y][x];
-                        }
-                        
-                        if (expectedTypeId !== null) {
-                            // Должен быть предмет
-                            if (slot.typeId !== expectedTypeId || slot.count < 1) {
-                                match = false;
-                                break;
-                            }
-                        } else {
-                            // Должно быть пусто
-                            if (slot.typeId !== null) {
-                                match = false;
-                                break;
-                            }
-                        }
-                    }
-                    if (!match) break;
-                }
-                
-                if (match) {
-                    matchedRecipe = recipe;
-                    break;
-                }
-            }
-            
-            const resultSlot = document.getElementById('crafting-result-slot');
-            const resultName = document.getElementById('crafting-result-name');
-            const craftButton = document.getElementById('craft-button');
-            
-            if (matchedRecipe) {
-                const resultType = blockTypes[matchedRecipe.result.typeId];
-                resultSlot.innerHTML = `<div class="block-preview ${resultType.className}" style="width: 50px; height: 50px;"></div>`;
-                resultName.textContent = `${resultType.name} x${matchedRecipe.result.count}`;
-                resultName.style.color = '#4ecdc4';
-                craftButton.disabled = false;
-                craftButton.onclick = () => craftItem(matchedRecipe);
-            } else {
-                resultSlot.innerHTML = '';
-                resultName.textContent = 'Нет рецепта';
-                resultName.style.color = '#888';
-                craftButton.disabled = true;
-                craftButton.onclick = null;
-            }
-        }
-        
-        // Крафт предмета
-        function craftItem(recipe) {
-            // Убираем предметы из слотов крафта
-            for (let i = 0; i < 9; i++) {
-                if (craftingSlots[i].typeId !== null) {
-                    craftingSlots[i].count--;
-                    if (craftingSlots[i].count === 0) {
-                        craftingSlots[i].typeId = null;
-                    }
-                }
-            }
-            
-            // Добавляем результат в инвентарь
-            addItemToInventory(recipe.result.typeId, recipe.result.count);
-            
-            // Обновляем UI
-            createCraftingUI();
-            updateCraftingResult();
-            showMessage(`Скрафчено: ${blockTypes[recipe.result.typeId].name}`, 2000);
-        }
-        
         // Настройка обработчиков событий
         function setupEventListeners() {
-            console.log("Настройка обработчиков событий...");
+            console.log("Настройка обработчиков событий для мобильного устройства...");
             
+            // Изменение размера окна
             window.addEventListener('resize', onWindowResize);
-            window.addEventListener('keydown', onKeyDown);
-            window.addEventListener('keyup', onKeyUp);
-            document.addEventListener('click', lockMouse);
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mousedown', onMouseDown);
-            document.addEventListener('wheel', onMouseWheel);
-            document.addEventListener('contextmenu', (e) => e.preventDefault());
             
-            // Кнопка закрытия инвентаря
-            document.getElementById('close-inventory').addEventListener('click', function() {
-                console.log("Кнопка закрытия инвентаря нажата");
+            // Обработка клавиатуры (ESC для разблокировки курсора)
+            window.addEventListener('keydown', onKeyDown);
+            
+            // Блокировка курсора при клике на экран
+            document.addEventListener('click', lockCursor);
+            
+            // Мобильное управление: джойстик
+            const joystickHandle = document.getElementById('joystick-handle');
+            const joystickBase = document.querySelector('.joystick-base');
+            
+            // События для джойстика
+            joystickHandle.addEventListener('touchstart', startJoystick);
+            joystickBase.addEventListener('touchstart', startJoystick);
+            document.addEventListener('touchmove', moveJoystick);
+            document.addEventListener('touchend', endJoystick);
+            
+            // События для кнопок действий
+            document.getElementById('jump-button').addEventListener('touchstart', () => {
+                if (!inventoryOpen && player.onGround) {
+                    player.velocityY = player.jumpForce;
+                    player.onGround = false;
+                }
+            });
+            
+            document.getElementById('inventory-button').addEventListener('touchstart', () => {
                 toggleInventory();
             });
             
-            // Добавляем обработчики для слотов инвентаря
-            document.addEventListener('click', function(e) {
-                if (inventoryOpen) {
-                    const slot = e.target.closest('.inventory-slot, .crafting-slot, .hotbar-slot');
-                    if (slot) {
-                        console.log("Слот инвентаря нажат");
-                    }
+            document.getElementById('break-button').addEventListener('touchstart', () => {
+                if (!inventoryOpen && isCursorLocked) {
+                    breakBlock();
                 }
             });
+            
+            document.getElementById('place-button').addEventListener('touchstart', () => {
+                if (!inventoryOpen && isCursorLocked) {
+                    placeBlock();
+                }
+            });
+            
+            // Кнопка закрытия инвентаря
+            document.getElementById('close-inventory').addEventListener('click', () => {
+                toggleInventory();
+            });
+            
+            // Управление камерой касанием
+            const touchRotateArea = document.getElementById('touch-rotate');
+            touchRotateArea.addEventListener('touchstart', startCameraRotate);
+            document.addEventListener('touchmove', moveCameraRotate);
+            document.addEventListener('touchend', endCameraRotate);
+            
+            // Предотвращение стандартного поведения касаний
+            document.addEventListener('touchmove', function(e) {
+                if (joystickActive || isRotating) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            // Скрываем информацию о курсоре через 10 секунд
+            setTimeout(() => {
+                document.getElementById('cursor-lock-info').style.display = 'none';
+            }, 10000);
         }
         
-        // Блокировка мыши
-        function lockMouse() {
-            if (!isMouseLocked && !inventoryOpen) {
-                console.log("Блокировка мыши...");
-                const canvas = renderer.domElement;
-                canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
-                canvas.requestPointerLock();
-                isMouseLocked = true;
+        // Блокировка курсора
+        function lockCursor() {
+            if (!isCursorLocked && !inventoryOpen) {
+                console.log("Курсор заблокирован");
+                isCursorLocked = true;
+                document.getElementById('crosshair').style.display = 'block';
+                document.getElementById('cursor-lock-info').style.display = 'none';
+                
+                // На мобильных устройствах запрашиваем полноэкранный режим
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen();
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen();
+                }
             }
         }
         
-        // Обработка движения мыши
-        function onMouseMove(event) {
-            if (!isMouseLocked || inventoryOpen) return;
+        // Разблокировка курсора
+        function unlockCursor() {
+            console.log("Курсор разблокирован");
+            isCursorLocked = false;
+            document.getElementById('crosshair').style.display = 'none';
+            document.getElementById('cursor-lock-info').style.display = 'block';
             
-            const movementX = event.movementX || event.mozMovementX || 0;
-            const movementY = event.movementY || event.mozMovementY || 0;
+            // Выход из полноэкранного режима
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+        }
+        
+        // Обработка клавиатуры
+        function onKeyDown(event) {
+            // ESC для разблокировки курсора
+            if (event.key === 'Escape') {
+                unlockCursor();
+            }
             
-            camera.rotation.y -= movementX * 0.002;
-            camera.rotation.x -= movementY * 0.002;
+            // Цифры для выбора слотов
+            if (event.key >= '1' && event.key <= '6') {
+                selectHotbarSlot(parseInt(event.key) - 1);
+            }
+        }
+        
+        // Джойстик: начало касания
+        function startJoystick(e) {
+            if (inventoryOpen) return;
             
+            const touch = e.touches[0];
+            const rect = document.getElementById('movement-joystick').getBoundingClientRect();
+            
+            joystickStartX = rect.left + rect.width / 2;
+            joystickStartY = rect.top + rect.height / 2;
+            joystickActive = true;
+            
+            updateJoystick(touch.clientX, touch.clientY);
+            e.preventDefault();
+        }
+        
+        // Джойстик: перемещение
+        function moveJoystick(e) {
+            if (!joystickActive || inventoryOpen) return;
+            
+            const touch = e.touches[0];
+            updateJoystick(touch.clientX, touch.clientY);
+            e.preventDefault();
+        }
+        
+        // Джойстик: обновление позиции
+        function updateJoystick(clientX, clientY) {
+            const dx = clientX - joystickStartX;
+            const dy = clientY - joystickStartY;
+            
+            // Ограничиваем радиус джойстика
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx);
+            
+            const limitedDistance = Math.min(distance, joystickRadius);
+            joystickX = Math.cos(angle) * limitedDistance;
+            joystickY = Math.sin(angle) * limitedDistance;
+            
+            // Обновляем позицию ручки джойстика
+            const joystickHandle = document.getElementById('joystick-handle');
+            joystickHandle.style.transform = `translate(${joystickX}px, ${joystickY}px)`;
+            
+            // Нормализуем значения для движения
+            const moveX = joystickX / joystickRadius;
+            const moveZ = -joystickY / joystickRadius; // Отрицательный для правильного направления
+            
+            // Сохраняем для использования в игровом цикле
+            joystickX = moveX;
+            joystickY = moveZ;
+        }
+        
+        // Джойстик: конец касания
+        function endJoystick(e) {
+            if (!joystickActive) return;
+            
+            joystickActive = false;
+            joystickX = 0;
+            joystickY = 0;
+            
+            // Возвращаем ручку джойстика в центр
+            const joystickHandle = document.getElementById('joystick-handle');
+            joystickHandle.style.transform = 'translate(-50%, -50%)';
+        }
+        
+        // Управление камерой: начало вращения
+        function startCameraRotate(e) {
+            if (inventoryOpen || !isCursorLocked) return;
+            
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            isRotating = true;
+            
+            // Сохраняем текущие вращения камеры
+            cameraRotationX = camera.rotation.x;
+            cameraRotationY = camera.rotation.y;
+        }
+        
+        // Управление камерой: вращение
+        function moveCameraRotate(e) {
+            if (!isRotating || inventoryOpen || !isCursorLocked) return;
+            
+            const touch = e.touches[0];
+            const deltaX = touch.clientX - touchStartX;
+            const deltaY = touch.clientY - touchStartY;
+            
+            // Обновляем вращение камеры
+            camera.rotation.y = cameraRotationY - deltaX * 0.005;
+            camera.rotation.x = cameraRotationX - deltaY * 0.005;
+            
+            // Ограничиваем вертикальное вращение
             camera.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, camera.rotation.x));
         }
         
-        // Обработка нажатия кнопки мыши
-        function onMouseDown(event) {
-            if (!isMouseLocked || inventoryOpen) return;
-            
-            // Определяем максимальную дистанцию для ломания/установки блоков (5 блоков)
+        // Управление камерой: конец вращения
+        function endCameraRotate(e) {
+            isRotating = false;
+        }
+        
+        // Ломание блока
+        function breakBlock() {
             const MAX_DISTANCE = 5;
             
             const raycaster = new THREE.Raycaster();
@@ -1280,8 +1437,33 @@
             
             if (intersects.length > 0) {
                 const intersect = intersects[0];
+                const distance = intersect.distance;
+                selectedBlockDistance = Math.round(distance);
+                document.getElementById('block-distance').textContent = `Дистанция: ${selectedBlockDistance} блоков`;
                 
-                // Проверяем дистанцию до блока
+                if (distance > MAX_DISTANCE) {
+                    showMessage('Слишком далеко!', 1000);
+                    return;
+                }
+                
+                const block = intersect.object;
+                if (removeBlock(block.position.x, block.position.y, block.position.z)) {
+                    showMessage('Блок добавлен в инвентарь!', 1000);
+                }
+            }
+        }
+        
+        // Установка блока
+        function placeBlock() {
+            const MAX_DISTANCE = 5;
+            
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+            
+            const intersects = raycaster.intersectObjects(world);
+            
+            if (intersects.length > 0) {
+                const intersect = intersects[0];
                 const distance = intersect.distance;
                 selectedBlockDistance = Math.round(distance);
                 document.getElementById('block-distance').textContent = `Дистанция: ${selectedBlockDistance} блоков`;
@@ -1293,122 +1475,47 @@
                 
                 const block = intersect.object;
                 const faceNormal = intersect.face.normal;
+                const selectedItem = inventory.hotbar[hotbarIndex];
                 
-                const newX = Math.round(block.position.x + faceNormal.x);
-                const newY = Math.round(block.position.y + faceNormal.y);
-                const newZ = Math.round(block.position.z + faceNormal.z);
-                
-                if (event.button === 0) { // ЛКМ - ломать блок
-                    if (removeBlock(block.position.x, block.position.y, block.position.z)) {
-                        showMessage('Блок добавлен в инвентарь!', 1000);
-                    }
-                } else if (event.button === 2) { // ПКМ - ставить блок
-                    const selectedItem = inventory.hotbar[hotbarIndex];
-                    if (selectedItem.typeId !== null && selectedItem.count > 0) {
-                        // Проверяем, не ставим ли блок внутри себя
-                        const playerX = Math.floor(player.x);
-                        const playerY = Math.floor(player.y);
-                        const playerZ = Math.floor(player.z);
-                        
-                        if (newX !== playerX || newY !== playerY || newZ !== playerZ) {
-                            addBlock(newX, newY, newZ, selectedItem.typeId);
-                            selectedItem.count--;
-                            if (selectedItem.count === 0) {
-                                selectedItem.typeId = null;
-                            }
-                            updateInventoryUI();
-                        } else {
-                            showMessage('Нельзя поставить блок внутри себя!', 1000);
+                if (selectedItem.typeId !== null && selectedItem.count > 0) {
+                    const newX = Math.round(block.position.x + faceNormal.x);
+                    const newY = Math.round(block.position.y + faceNormal.y);
+                    const newZ = Math.round(block.position.z + faceNormal.z);
+                    
+                    // Проверяем, не ставим ли блок внутри себя
+                    const playerX = Math.floor(player.x);
+                    const playerY = Math.floor(player.y);
+                    const playerZ = Math.floor(player.z);
+                    
+                    if (newX !== playerX || newY !== playerY || newZ !== playerZ) {
+                        addBlock(newX, newY, newZ, selectedItem.typeId);
+                        selectedItem.count--;
+                        if (selectedItem.count === 0) {
+                            selectedItem.typeId = null;
                         }
+                        updateInventoryUI();
                     } else {
-                        showMessage('Нет блоков для установки!', 1000);
+                        showMessage('Нельзя поставить блок внутри себя!', 1000);
                     }
-                }
-            }
-        }
-        
-        // Обработка колесика мыши
-        function onMouseWheel(event) {
-            if (inventoryOpen) return;
-            
-            if (event.deltaY > 0) {
-                hotbarIndex = (hotbarIndex + 1) % 9;
-            } else {
-                hotbarIndex = (hotbarIndex - 1 + 9) % 9;
-            }
-            selectHotbarSlot(hotbarIndex);
-        }
-        
-        // Обработка нажатия клавиш
-        function onKeyDown(event) {
-            const key = event.key.toLowerCase();
-            keys[key] = true;
-            
-            console.log("Клавиша нажата:", key, keys);
-            
-            // Переключение инвентаря
-            if (key === 'e') {
-                console.log("Клавиша E нажата - переключение инвентаря");
-                toggleInventory();
-                event.preventDefault();
-            }
-            
-            // Переключение режима полета
-            if (key === 'f') {
-                isFlying = !isFlying;
-                document.getElementById('movement-mode').textContent = isFlying ? 'Полёт' : 'Ходьба';
-                showMessage(isFlying ? 'Режим полёта: ВКЛ' : 'Режим полёта: ВЫКЛ', 2000);
-            }
-            
-            // Выбор блока цифрами
-            if (key >= '1' && key <= '9') {
-                selectHotbarSlot(parseInt(key) - 1);
-            }
-            
-            // Выход из режима блокировки мыши
-            if (key === 'escape') {
-                if (inventoryOpen) {
-                    toggleInventory();
                 } else {
-                    document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock;
-                    document.exitPointerLock();
-                    isMouseLocked = false;
+                    showMessage('Нет блоков для установки!', 1000);
                 }
-            }
-            
-            // Бег
-            if (key === 'shift') {
-                player.isRunning = true;
-            }
-        }
-        
-        // Обработка отпускания клавиш
-        function onKeyUp(event) {
-            const key = event.key.toLowerCase();
-            keys[key] = false;
-            
-            if (key === 'shift') {
-                player.isRunning = false;
             }
         }
         
         // Переключение инвентаря
         function toggleInventory() {
-            console.log("toggleInventory вызван, текущее состояние:", inventoryOpen);
             inventoryOpen = !inventoryOpen;
             const inventoryElement = document.getElementById('inventory');
             
             if (inventoryOpen) {
                 console.log("Открытие инвентаря");
                 inventoryElement.style.display = 'block';
-                document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock;
-                document.exitPointerLock();
-                isMouseLocked = false;
-                updateCraftingResult();
+                unlockCursor();
             } else {
                 console.log("Закрытие инвентаря");
                 inventoryElement.style.display = 'none';
-                lockMouse();
+                lockCursor();
             }
         }
         
@@ -1421,68 +1528,42 @@
         
         // Обновление игровой логики
         function update() {
-            if (inventoryOpen) return;
+            if (inventoryOpen || !isCursorLocked) return;
             
-            // ИСПРАВЛЕННОЕ ДВИЖЕНИЕ
-            const moveSpeed = player.isRunning ? player.runSpeed : player.speed;
-            
-            // Получаем направление взгляда камеры
-            const direction = new THREE.Vector3();
-            camera.getWorldDirection(direction);
-            
-            // Сбрасываем Y компонент для движения по горизонтали
-            direction.y = 0;
-            direction.normalize();
-            
-            // Создаем вектор для движения вправо
-            const right = new THREE.Vector3().crossVectors(direction, new THREE.Vector3(0, 1, 0)).normalize();
-            
-            // Собираем вектор движения
-            const move = new THREE.Vector3(0, 0, 0);
-            
-            if (keys['w']) {
-                move.add(direction.clone().multiplyScalar(moveSpeed));
+            // Движение с помощью джойстика
+            if (joystickActive) {
+                const moveSpeed = player.speed;
+                
+                // Получаем направление взгляда камеры
+                const direction = new THREE.Vector3();
+                camera.getWorldDirection(direction);
+                
+                // Сбрасываем Y компонент для движения по горизонтали
+                direction.y = 0;
+                direction.normalize();
+                
+                // Создаем вектор для движения вправо
+                const right = new THREE.Vector3().crossVectors(direction, new THREE.Vector3(0, 1, 0)).normalize();
+                
+                // Вычисляем вектор движения на основе джойстика
+                const moveX = joystickX;
+                const moveZ = joystickY;
+                
+                // Применяем движение
+                player.x += (direction.x * moveZ + right.x * moveX) * moveSpeed;
+                player.z += (direction.z * moveZ + right.z * moveX) * moveSpeed;
+                
+                // Проверяем столкновения с блоками
+                checkCollisions();
             }
-            if (keys['s']) {
-                move.add(direction.clone().multiplyScalar(-moveSpeed));
-            }
-            if (keys['a']) {
-                move.add(right.clone().multiplyScalar(-moveSpeed));
-            }
-            if (keys['d']) {
-                move.add(right.clone().multiplyScalar(moveSpeed));
-            }
-            
-            // Применяем движение
-            player.x += move.x;
-            player.z += move.z;
-            
-            // Проверяем столкновения с блоками
-            checkCollisions();
             
             // Физика прыжка и гравитации
-            if (!isFlying) {
-                // Прыжок
-                if (keys[' '] && player.onGround) {
-                    player.velocityY = player.jumpForce;
-                    player.onGround = false;
-                }
-                
-                // Гравитация
-                player.velocityY -= player.gravity;
-                player.y += player.velocityY;
-                
-                // Проверка земли
-                checkGroundCollision();
-            } else {
-                // Режим полета
-                if (keys[' ']) {
-                    player.y += moveSpeed;
-                }
-                if (keys['shift']) {
-                    player.y -= moveSpeed;
-                }
-            }
+            // Гравитация
+            player.velocityY -= player.gravity;
+            player.y += player.velocityY;
+            
+            // Проверка земли
+            checkGroundCollision();
             
             // Обновление позиции камеры
             camera.position.set(player.x, player.y + 1.7, player.z);
@@ -1551,17 +1632,10 @@
             const x = Math.floor(player.x);
             const y = Math.floor(player.y);
             const z = Math.floor(player.z);
-            document.getElementById('coordinates').textContent = `X: ${x}, Y: ${y}, Z: ${z}`;
             
-            // Обновление направления взгляда
-            const angle = (camera.rotation.y * 180 / Math.PI) % 360;
-            let direction = 'Север';
-            if (angle > -45 && angle <= 45) direction = 'Север';
-            else if (angle > 45 && angle <= 135) direction = 'Восток';
-            else if (angle > 135 || angle <= -135) direction = 'Юг';
-            else if (angle > -135 && angle <= -45) direction = 'Запад';
-            
-            document.getElementById('looking-at').textContent = direction;
+            document.getElementById('coord-x').textContent = x;
+            document.getElementById('coord-y').textContent = y;
+            document.getElementById('coord-z').textContent = z;
             
             // Обновление здоровья
             document.getElementById('health-fill').style.width = `${health}%`;
